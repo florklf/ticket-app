@@ -19,51 +19,74 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  firstname  String?
+  id        Int     @id @default(autoincrement())
+  email     String  @unique
+  firstname String?
   lastname  String?
-  role  String? @default("USER")
-  password String
-  Order Order[]
+  role      String? @default("USER")
+  password  String
+  Order     Order[]
+}
+
+model Place {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  address     String
+  city        String
+  zip         String
+  events      Event[]
+  seatTypes   SeatType[]
 }
 
 model Event {
-  id          Int            @id @default(autoincrement())
-  name        String
-  description String?
-  date        DateTime?      @default(now())
-  place       String?
-  type        EnumEventType?
-  seatsTypes  SeatType[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  description        String
+  type               EnumEventType
+  date               DateTime?            @default(now())
+  place_id           Int
+  place              Place                @relation(fields: [place_id], references: [id])
+  SeatTypesForEvents SeatTypesForEvents[]
 }
 
 model SeatType {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-  price       Int?
-  event_id    Int
-  event       Event   @relation(fields: [event_id], references: [id])
-  orderItems  OrderItem[]
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  description        String?
+  capacity           Int
+  place_id           Int
+  place              Place                @relation(fields: [place_id], references: [id])
+  SeatTypesForEvents SeatTypesForEvents[]
+}
+
+model SeatTypesForEvents {
+  id           Int         @id @default(autoincrement())
+  price        Int
+  event_id     Int
+  event        Event       @relation(fields: [event_id], references: [id])
+  seat_type_id Int
+  seatType     SeatType    @relation(fields: [seat_type_id], references: [id])
+  OrderItem    OrderItem[]
+  assignedAt   DateTime    @default(now())
 }
 
 model Order {
-  id         Int       @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   user_id    Int
-  user       User      @relation(fields: [user_id], references: [id])
-  created_at DateTime? @default(now())
-  updated_at DateTime? @updatedAt
+  user       User        @relation(fields: [user_id], references: [id])
+  created_at DateTime?   @default(now())
+  updated_at DateTime?   @updatedAt
   orderItems OrderItem[]
 }
 
 model OrderItem {
-  id           Int       @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   order_id     Int
-  order        Order     @relation(fields: [order_id], references: [id])
+  order        Order              @relation(fields: [order_id], references: [id])
   seat_type_id Int
-  seat_type    SeatType  @relation(fields: [seat_type_id], references: [id])
+  seatType     SeatTypesForEvents @relation(fields: [seat_type_id], references: [id])
   quantity     Int
-  created_at   DateTime? @default(now())
-  updated_at   DateTime? @updatedAt
+  created_at   DateTime?          @default(now())
+  updated_at   DateTime?          @updatedAt
 }
