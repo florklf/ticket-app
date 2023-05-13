@@ -1,16 +1,14 @@
-import { Controller, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, UseFilters, ValidationPipe } from '@nestjs/common';
 import { EventService } from './event.service';
 import { Prisma, Event } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { PrismaClientExceptionFilter } from '@ticket-app/database';
-import { RpcValidationFilter } from './http-exception.filter';
+import { RpcValidationFilter, CreateEventDto, UpdateEventDto } from '@ticket-app/common';
 
 @ApiTags('event')
 @UseFilters(new PrismaClientExceptionFilter(), RpcValidationFilter)
-@Controller({ path: 'events' })
+@Controller()
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
@@ -24,15 +22,14 @@ export class EventController {
     return await this.eventService.events({});
   }
 
-  @UsePipes(new ValidationPipe())
   @MessagePattern({ cmd: 'createEvent' })
-  async createEvent(data: CreateEventDto): Promise<Event> {
+  async createEvent(@Payload(new ValidationPipe()) data: CreateEventDto): Promise<Event> {
     return await this.eventService.createEvent(data);
   }
 
   @MessagePattern({ cmd: 'updateEvent' })
-  async updateEvent(data: { where: Prisma.UserWhereUniqueInput; data: UpdateEventDto }): Promise<Event> {
-    return this.eventService.updateEvent(data);
+  async updateEvent(@Payload('where') where: Prisma.UserWhereUniqueInput, @Payload('data') data: UpdateEventDto): Promise<Event> {
+    return this.eventService.updateEvent({where, data});
   }
 
   @MessagePattern({ cmd: 'removeEvent' })

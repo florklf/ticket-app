@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@ticket-app/database';
-import { Place, Prisma } from '@ticket-app/database';
+import { Place, Prisma, PrismaService } from '@ticket-app/database';
 
 @Injectable()
 export class PlaceService {

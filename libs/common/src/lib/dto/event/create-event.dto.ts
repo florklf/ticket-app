@@ -4,10 +4,11 @@ import { IsDate, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validato
 import { EnumEventType } from '@ticket-app/database';
 
 export class CreateEventDto implements Prisma.EventCreateInput {
+  @ApiProperty({default: 'name'})
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @ApiProperty({default: 'description'})
   @IsString()
   description: string;
 
@@ -15,6 +16,7 @@ export class CreateEventDto implements Prisma.EventCreateInput {
   @IsDate()
   date?: Date;
 
+  @ApiProperty({default: 'prisma'})
   @IsNotEmpty()
   place: Prisma.PlaceCreateNestedOneWithoutEventsInput;
 

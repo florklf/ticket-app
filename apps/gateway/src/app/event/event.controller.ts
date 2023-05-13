@@ -1,14 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseFilters, UseGuards } from '@nestjs/common';
-import { Prisma, Event } from '@ticket-app/database';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe } from '@nestjs/common';
+import { Event } from '@ticket-app/database';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
-import { CustomExceptionFilter } from '../common/filters/custom-exception.filter';
-import { AuthGuard } from '../common/guards/auth.guard';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { CreateEventDto, UpdateEventDto } from '@ticket-app/common';
 
 @Controller('events')
 @ApiTags('events')
-@UseFilters(CustomExceptionFilter)
 export class EventController {
   constructor(@Inject('EVENT_CLIENT') private readonly client: ClientProxy) {}
 
@@ -23,12 +21,14 @@ export class EventController {
   }
 
   @Post()
-  async create(@Body() createEventDto: Prisma.EventCreateInput): Promise<Event> {
+  @ApiBody({ type: CreateEventDto })
+  async create(@Body(new ValidationPipe) createEventDto: CreateEventDto): Promise<Event> {
     return await lastValueFrom(await this.client.send({ cmd: 'createEvent' }, createEventDto));
   }
 
   @Patch(':id')
-  async update(@Param() id: string, @Body() updateEventDto: Prisma.EventUpdateInput): Promise<Event> {
+  @ApiBody({ type: UpdateEventDto })
+  async update(@Param('id') id: string, @Body(new ValidationPipe) updateEventDto: UpdateEventDto): Promise<Event> {
     return await lastValueFrom(
       await this.client.send(
         { cmd: 'updateEvent' },

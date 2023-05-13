@@ -1,37 +1,37 @@
-import { Controller, UseFilters } from '@nestjs/common';
+import { Controller, Logger, UseFilters, ValidationPipe } from '@nestjs/common';
 import { Prisma, Place } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
-import { MessagePattern } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { PrismaClientExceptionFilter } from '@ticket-app/database';
-
 import { PlaceService } from './place.service';
-import { CreatePlaceDto } from './dto/create-place.dto';
-import { UpdatePlaceDto } from './dto/update-place.dto';
+import { CreatePlaceDto, RpcValidationFilter } from '@ticket-app/common';
+import { UpdatePlaceDto } from '@ticket-app/common';
 
 @ApiTags('places')
-@UseFilters(new PrismaClientExceptionFilter())
-@Controller({ path: 'places' })
+@UseFilters(new PrismaClientExceptionFilter(), RpcValidationFilter)
+@Controller()
 export class PlaceController {
   constructor(private readonly placeService: PlaceService) {}
 
-  @MessagePattern({ cmd: 'getPlace' })
+  @MessagePattern({ cmd: 'findPlace' })
   async getPlace(data: Prisma.PlaceWhereUniqueInput): Promise<Place> {
     return await this.placeService.place(data);
   }
 
-  @MessagePattern({ cmd: 'getPlaces' })
+  @MessagePattern({ cmd: 'findPlaces' })
   async findAll(): Promise<Place[]> {
     return await this.placeService.places({});
   }
 
   @MessagePattern({ cmd: 'createPlace' })
-  async createPlace(data: CreatePlaceDto): Promise<Place> {
+  async createPlace(@Payload(new ValidationPipe()) data: CreatePlaceDto): Promise<Place> {
     return await this.placeService.createPlace(data);
   }
 
   @MessagePattern({ cmd: 'updatePlace' })
-  async updatePlace(data: { where: Prisma.UserWhereUniqueInput; data: UpdatePlaceDto }): Promise<Place> {
-    return this.placeService.updatePlace(data);
+  async updatePlace(@Payload('where') where: Prisma.UserWhereUniqueInput, @Payload('data', new ValidationPipe()) data: UpdatePlaceDto): Promise<Place> {
+    Logger.log(data, 'updatePlace');
+    return this.placeService.updatePlace({where, data});
   }
 
   @MessagePattern({ cmd: 'removePlace' })

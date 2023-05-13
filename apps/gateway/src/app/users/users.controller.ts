@@ -1,14 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseFilters, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@ticket-app/database';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
-import { CustomExceptionFilter } from '../common/filters/custom-exception.filter';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @Controller('users')
 @ApiTags('users')
-@UseFilters(CustomExceptionFilter)
 export class UsersController {
   constructor(@Inject('USER_CLIENT') private readonly client: ClientProxy) {}
 

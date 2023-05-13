@@ -6,7 +6,7 @@ import { PlaceModule } from './place/place.module';
 import { EventModule } from './event/event.module';
 
 @Module({
-  imports: [EventModule],
+  imports: [EventModule, PlaceModule],
   controllers: [AppController],
   providers: [AppService],
 })

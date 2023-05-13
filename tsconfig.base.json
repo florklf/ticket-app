@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@ticket-app/common": ["libs/common/src/index.ts"],
       "@ticket-app/database": ["libs/database/src/index.ts"],
       "@ticket-app/guards": ["libs/guards/src/index.ts"]
     }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@ticket-app/database';
-import { Event, Prisma } from '@ticket-app/database';
+import { Event, Prisma, PrismaService } from '@ticket-app/database';
 
 @Injectable()
 export class EventService {

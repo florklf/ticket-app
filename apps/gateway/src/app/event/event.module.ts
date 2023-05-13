@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { EventController } from './event.controller';
 import { DatabaseModule } from '@ticket-app/database';
 import { ClientsModule } from '@nestjs/microservices';
+import { PlaceController } from './place.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { ClientsModule } from '@nestjs/microservices';
       },
     ]),
   ],
-  controllers: [EventController],
+  controllers: [EventController, PlaceController],
   providers: [],
 })
 export class EventModule {}
