@@ -16,7 +16,11 @@ export class CreateEventDto implements Prisma.EventCreateInput {
   @IsDate()
   date?: Date;
 
-  @ApiProperty({default: 'prisma'})
+  @ApiProperty({default: {
+    connect: {
+      id: 1
+    }
+  }})
   @IsNotEmpty()
   place: Prisma.PlaceCreateNestedOneWithoutEventsInput;
 

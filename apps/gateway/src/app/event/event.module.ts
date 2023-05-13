@@ -3,6 +3,7 @@ import { EventController } from './event.controller';
 import { DatabaseModule } from '@ticket-app/database';
 import { ClientsModule } from '@nestjs/microservices';
 import { PlaceController } from './place.controller';
+import { SeatTypeController } from './seat-type.controller';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { PlaceController } from './place.controller';
       },
     ]),
   ],
-  controllers: [EventController, PlaceController],
+  controllers: [EventController, PlaceController, SeatTypeController],
   providers: [],
 })
 export class EventModule {}

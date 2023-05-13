@@ -52,7 +52,7 @@ model Event {
 
 model SeatType {
   id                 Int                  @id @default(autoincrement())
-  name               String
+  name               String               @unique()
   description        String?
   capacity           Int
   place_id           Int
