@@ -12,7 +12,6 @@ async function bootstrap() {
   .setDescription('The ticket app API description')
   .addBearerAuth()
   .setVersion('1.0')
-  .addTag('ticket-app')
   .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
