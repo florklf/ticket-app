@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { User, Prisma, PrismaService } from '@ticket-app/database';
-
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -52,5 +52,9 @@ export class UserService {
     return this.prisma.user.delete({
       where,
     });
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return hash(password, 10);
   }
 }
