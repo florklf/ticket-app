@@ -1,13 +1,11 @@
-import { Controller, UseFilters, ValidationPipe } from '@nestjs/common';
+import { Controller, ValidationPipe } from '@nestjs/common';
 import { EventService } from './event.service';
 import { Prisma, Event } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { PrismaClientExceptionFilter } from '@ticket-app/database';
-import { RpcValidationFilter, CreateEventDto, UpdateEventDto } from '@ticket-app/common';
+import { CreateEventDto, UpdateEventDto } from '@ticket-app/common';
 
 @ApiTags('event')
-@UseFilters(new PrismaClientExceptionFilter(), RpcValidationFilter)
 @Controller()
 export class EventController {
   constructor(private readonly eventService: EventService) {}

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe } from '@nestjs/common';
 import { SeatType } from '@ticket-app/database';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateSeatTypeDto, UpdateSeatTypeDto } from '@ticket-app/common';
 
@@ -12,18 +12,21 @@ export class SeatTypeController {
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<SeatType> {
-    return await lastValueFrom(await this.client.send({ cmd: 'findSeatType' }, { id: +id }));
+    return await lastValueFrom(await this.client.send({ cmd: 'findSeatType' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Get()
   async findAll(): Promise<SeatType[]> {
-    return await lastValueFrom(await this.client.send({ cmd: 'findSeatTypes' }, {}));
+    return await lastValueFrom(await this.client.send({ cmd: 'findSeatTypes' }, {})
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Post()
   @ApiBody({ type: CreateSeatTypeDto })
   async create(@Body(new ValidationPipe) createSeatTypeDto: CreateSeatTypeDto): Promise<SeatType> {
-    return await lastValueFrom(await this.client.send({ cmd: 'createSeatType' }, createSeatTypeDto));
+    return await lastValueFrom(await this.client.send({ cmd: 'createSeatType' }, createSeatTypeDto)
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Patch(':id')
@@ -37,11 +40,12 @@ export class SeatTypeController {
           data: updateSeatTypeDto,
         }
       )
-    );
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<SeatType> {
-    return await lastValueFrom(await this.client.send({ cmd: 'removeSeatType' }, { id: +id }));
+    return await lastValueFrom(await this.client.send({ cmd: 'removeSeatType' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }

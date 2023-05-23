@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseGuards } from '@nestjs/common';
 import { Prisma, User } from '@ticket-app/database';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -12,7 +12,8 @@ export class UsersController {
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
-    return await lastValueFrom(await this.client.send({ cmd: 'findUser' }, { id: +id }));
+    return await lastValueFrom(await this.client.send({ cmd: 'findUser' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Get()
@@ -24,7 +25,8 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: Prisma.UserCreateInput): Promise<User> {
-    return await lastValueFrom(await this.client.send({ cmd: 'createUser' }, createUserDto));
+      return await lastValueFrom(await this.client.send({ cmd: 'createUser' }, createUserDto)
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Patch(':id')
@@ -37,11 +39,12 @@ export class UsersController {
           data: updateUserDto,
         }
       )
-    );
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<User> {
-    return await lastValueFrom(await this.client.send({ cmd: 'removeUser' }, { id: +id }));
+    return await lastValueFrom(await this.client.send({ cmd: 'removeUser' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }

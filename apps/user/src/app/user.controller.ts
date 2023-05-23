@@ -1,10 +1,9 @@
-import { Controller, UseFilters } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { UserService } from './user.service';
 import { MessagePattern } from '@nestjs/microservices';
-import { User, Prisma, PrismaClientExceptionFilter } from '@ticket-app/database';
+import { User, Prisma } from '@ticket-app/database';
 
 @Controller()
-@UseFilters(new PrismaClientExceptionFilter())
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
