@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       return await lastValueFrom(
-        await this.client.send({ role: 'auth', cmd: 'check' }, { jwt: req.headers['authorization']?.split(' ')[1] }).pipe(timeout(5000))
+        await this.client.send({ cmd: 'check' }, { jwt: req.headers['authorization']?.split(' ')[1] }).pipe(timeout(5000))
       );
     } catch (err) {
       Logger.error(err);

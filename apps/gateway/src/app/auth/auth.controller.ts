@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { LoginDto } from './dto/login-dto';
 import { lastValueFrom } from 'rxjs';
@@ -12,7 +12,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     try {
-      return await lastValueFrom(await this.client.send({ role: 'auth', cmd: 'login' }, loginDto));
+      return await lastValueFrom(await this.client.send({ cmd: 'login' }, loginDto));
     } catch (e) {
       return false;
     }
@@ -22,9 +22,14 @@ export class AuthController {
   @Get('check')
   async loggedIn(@Req() req) {
     try {
-      return await lastValueFrom(await this.client.send({ role: 'auth', cmd: 'check' }, { jwt: req.headers['authorization']?.split(' ')[1] }));
+      return await lastValueFrom(await this.client.send({ cmd: 'check' }, { jwt: req.headers['authorization']?.split(' ')[1] }));
     } catch (e) {
-      return false;
+      throw new UnauthorizedException('Expired token');
     }
+  }
+
+  @Post('logout')
+  async logout(@Req() req) {
+    return true;
   }
 }

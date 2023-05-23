@@ -15,6 +15,7 @@ export class UserController {
 
   @MessagePattern({ cmd: 'createUser' })
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
+    data.password = await this.userService.hashPassword(data.password);
     return await this.userService.createUser(data);
   }
 

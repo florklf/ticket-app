@@ -14,7 +14,7 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     try {
-      const res = await this.client.send({ role: 'user', cmd: 'findOne' }, { email: email })
+      const res = await this.client.send({ cmd: 'findUser' }, { email: email })
       .pipe(timeout(5000), catchError(err => {
         if (err instanceof TimeoutError) {
           return throwError(() => new RequestTimeoutException())
