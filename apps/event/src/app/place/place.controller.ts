@@ -1,14 +1,11 @@
-import { Controller, Logger, UseFilters, ValidationPipe } from '@nestjs/common';
+import { Controller, Logger, ValidationPipe } from '@nestjs/common';
 import { Prisma, Place } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { PrismaClientExceptionFilter } from '@ticket-app/database';
 import { PlaceService } from './place.service';
-import { CreatePlaceDto, RpcValidationFilter } from '@ticket-app/common';
-import { UpdatePlaceDto } from '@ticket-app/common';
+import { CreatePlaceDto, UpdatePlaceDto } from '@ticket-app/common';
 
 @ApiTags('places')
-@UseFilters(new PrismaClientExceptionFilter(), RpcValidationFilter)
 @Controller()
 export class PlaceController {
   constructor(private readonly placeService: PlaceService) {}

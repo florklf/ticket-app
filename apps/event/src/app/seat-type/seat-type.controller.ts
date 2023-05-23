@@ -1,14 +1,11 @@
-import { Controller, Logger, UseFilters, ValidationPipe } from '@nestjs/common';
+import { Controller, Logger, ValidationPipe } from '@nestjs/common';
 import { Prisma, SeatType } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { PrismaClientExceptionFilter } from '@ticket-app/database';
 import { SeatTypeService } from './seat-type.service';
-import { CreateSeatTypeDto, RpcValidationFilter } from '@ticket-app/common';
-import { UpdateSeatTypeDto } from '@ticket-app/common';
+import { CreateSeatTypeDto, UpdateSeatTypeDto } from '@ticket-app/common';
 
 @ApiTags('seatTypes')
-@UseFilters(new PrismaClientExceptionFilter(), RpcValidationFilter)
 @Controller()
 export class SeatTypeController {
   constructor(private readonly seatTypeService: SeatTypeService) {}

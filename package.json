@@ -5,7 +5,9 @@
     "seed": "ts-node libs/database/src/lib/seed.ts"
   },
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "all": "npx nx run-many -t serve --maxParallel=10"
+  },
   "private": true,
   "dependencies": {
     "@faker-js/faker": "^7.6.0",

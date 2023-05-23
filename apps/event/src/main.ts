@@ -1,20 +1,22 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { Transport } from '@nestjs/microservices';
+import { MicroserviceOptions } from '@nestjs/microservices';
+import { PrismaExceptionInterceptor } from '@ticket-app/database';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  app.connectMicroservice({
-    transport: Transport.TCP,
-    options: {
-      host: process.env.HOST,
-      port: process.env.EVENT_TCP_PORT,
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      options: {
+        host: process.env.HOST,
+        port: process.env.EVENT_TCP_PORT,
+      },
     },
-  });
+  );
   app.useGlobalPipes(new ValidationPipe());
-  await app.startAllMicroservices();
+  app.useGlobalInterceptors(new PrismaExceptionInterceptor());
+  await app.listen();
   Logger.log(`Event microservice running on ${process.env.EVENT_TCP_PORT} (TCP)`);
 }
 
