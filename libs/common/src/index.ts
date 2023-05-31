@@ -5,3 +5,5 @@ export * from './lib/dto/event/create-event.dto';
 export * from './lib/dto/event/update-event.dto';
 export * from './lib/dto/event/create-seat-type.dto';
 export * from './lib/dto/event/update-seat-type.dto';
+export * from './lib/dto/payments/create-payment.dto';
+export * from './lib/dto/payments/update-payment.dto';
