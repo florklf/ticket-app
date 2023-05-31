@@ -2,7 +2,8 @@
   "name": "ticket-app",
   "version": "0.0.0",
   "prisma": {
-    "seed": "ts-node libs/database/src/lib/seed.ts"
+    "seed": "ts-node libs/database/src/lib/seed.ts",
+    "schema": "libs/database/src/lib/schema.prisma"
   },
   "license": "MIT",
   "scripts": {
@@ -10,7 +11,6 @@
   },
   "private": true,
   "dependencies": {
-    "@faker-js/faker": "^7.6.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/jwt": "^10.0.3",
@@ -24,6 +24,7 @@
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "ngrok": "^5.0.0-beta.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -32,6 +33,7 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^8.0.1",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
     "@nx-plus/nuxt": "^14.1.0",

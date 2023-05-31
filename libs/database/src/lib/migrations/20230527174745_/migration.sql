@@ -1,0 +1,2 @@
+-- CreateEnum
+CREATE TYPE "EnumGenre" AS ENUM ('POP', 'ROCK', 'RAP', 'JAZZ', 'CLASSIQUE', 'ELECTRO', 'METAL', 'REGGAE', 'BLUES');

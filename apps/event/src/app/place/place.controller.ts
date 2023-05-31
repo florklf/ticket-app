@@ -1,4 +1,4 @@
-import { Controller, Logger, ValidationPipe } from '@nestjs/common';
+import { Controller, ValidationPipe } from '@nestjs/common';
 import { Prisma, Place } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
@@ -27,7 +27,6 @@ export class PlaceController {
 
   @MessagePattern({ cmd: 'updatePlace' })
   async updatePlace(@Payload('where') where: Prisma.UserWhereUniqueInput, @Payload('data', new ValidationPipe()) data: UpdatePlaceDto): Promise<Place> {
-    Logger.log(data, 'updatePlace');
     return this.placeService.updatePlace({where, data});
   }
 

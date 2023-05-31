@@ -1,23 +1,73 @@
 import { Controller, ValidationPipe } from '@nestjs/common';
 import { EventService } from './event.service';
-import { Prisma, Event } from '@ticket-app/database';
+import { Prisma, Event, EnumEventType } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateEventDto, UpdateEventDto } from '@ticket-app/common';
+import { EventSeatTypeService } from './event-seat-type.service';
 
 @ApiTags('event')
 @Controller()
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService, private readonly eventSeatTypeService: EventSeatTypeService) {}
 
   @MessagePattern({ cmd: 'findEvent' })
   async findEvent(data: Prisma.EventWhereUniqueInput): Promise<Event> {
-    return await this.eventService.event(data);
+    return await this.eventService.event({
+      where: data,
+      include: {
+        place: true,
+        EventSeatType: {
+          include: {
+            seatType: true
+          }
+        },
+        genre: true,
+        artist: true,
+      },
+    });
   }
 
   @MessagePattern({ cmd: 'findEvents' })
-  async findAll(): Promise<Event[]> {
-    return await this.eventService.events({});
+  async findAll(params: {
+    skip?: number;
+    take?: number;
+    orderBy?: Prisma.EventOrderByWithRelationInput;
+    where?: Prisma.EventWhereInput;
+  }): Promise<Event[]> {
+    const { skip, take, orderBy, where } = params;
+
+    return await this.eventService.events({
+      orderBy: orderBy ?? {
+        date: 'asc'
+      },
+      include: {
+        place: true
+      },
+      take,
+      skip,
+      where
+    });
+  }
+
+  @MessagePattern({ cmd: 'countEvents' })
+  async countEvents(data: Prisma.EventWhereInput): Promise<number> {
+    return await this.eventService.countEvents(data);
+  }
+
+  @MessagePattern({ cmd: 'findConcerts' })
+  async findAllConcerts(): Promise<Event[]> {
+    return await this.eventService.events({
+      where: {
+        type: EnumEventType.CONCERT,
+      },
+      include: {
+        place: true
+      },
+      orderBy: {
+        date: 'asc'
+      },
+    });
   }
 
   @MessagePattern({ cmd: 'createEvent' })
@@ -33,5 +83,18 @@ export class EventController {
   @MessagePattern({ cmd: 'removeEvent' })
   async removeEvent(data: Prisma.EventWhereUniqueInput): Promise<Event> {
     return await this.eventService.deleteEvent(data);
+  }
+
+  @MessagePattern({ cmd: 'findEventSeatTypeForSnipcart' })
+  async findEventSeatTypeForSnipcart(data: Prisma.EventWhereUniqueInput): Promise<any> {
+    const eventSeatType = await this.eventSeatTypeService.eventSeatType({
+      where: data,
+    });
+    return {
+      id: eventSeatType.id.toString(),
+      price: eventSeatType.price,
+      url: `${process.env.EXPOSED_HOST}/events/seat-types/${eventSeatType.id.toString()}`,
+      "customFields": [],
+    }
   }
 }
