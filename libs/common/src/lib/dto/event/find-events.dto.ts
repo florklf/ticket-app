@@ -13,7 +13,7 @@ export class FindEventsDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @IsIn([10, 20, 30])
+  @IsIn([4, 10, 20, 30])
   limit: number;
 
   @IsOptional()
