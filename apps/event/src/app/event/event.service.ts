@@ -5,26 +5,33 @@ import { Event, Prisma, PrismaService } from '@ticket-app/database';
 export class EventService {
   constructor(private prisma: PrismaService) {}
 
-  async event(eventWhereUniqueInput: Prisma.EventWhereUniqueInput): Promise<Event | null> {
+  async event(params: {
+    where?: Prisma.EventWhereUniqueInput;
+    include?: Prisma.EventInclude;
+  }): Promise<Event | null> {
+    const { where, include } = params;
     return this.prisma.event.findUniqueOrThrow({
-      where: eventWhereUniqueInput,
+      where,
+      include,
     });
   }
 
   async events(params: {
     skip?: number;
     take?: number;
-    cursor?: Prisma.UserWhereUniqueInput;
-    where?: Prisma.UserWhereInput;
-    orderBy?: Prisma.UserOrderByWithRelationInput;
+    cursor?: Prisma.EventWhereUniqueInput;
+    where?: Prisma.EventWhereInput;
+    orderBy?: Prisma.EventOrderByWithRelationInput;
+    include?: Prisma.EventInclude;
   }): Promise<Event[]> {
-    const { skip, take, cursor, where, orderBy } = params;
+    const { skip, take, cursor, where, orderBy, include } = params;
     return this.prisma.event.findMany({
       skip,
       take,
       cursor,
       where,
       orderBy,
+      include
     });
   }
 
@@ -45,6 +52,12 @@ export class EventService {
   async deleteEvent(where: Prisma.EventWhereUniqueInput): Promise<Event> {
     return this.prisma.event.delete({
       where,
+    });
+  }
+
+  async countEvents(where: Prisma.EventWhereInput): Promise<number> {
+    return this.prisma.event.count({
+      where
     });
   }
 }

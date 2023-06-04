@@ -11,6 +11,7 @@ export class PrismaExceptionInterceptor implements NestInterceptor {
       .handle()
       .pipe(
         catchError(err => {
+          Logger.log(err)
           const message = err.message.replace(/\n/g, '');
           if (err instanceof Prisma.PrismaClientKnownRequestError) {
             switch (err.code) {

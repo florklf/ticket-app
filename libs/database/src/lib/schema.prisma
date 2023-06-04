@@ -7,10 +7,21 @@ generator client {
 
 enum EnumEventType {
   CONCERT
+  SPECTACLE
   FESTIVAL
   CONFERENCE
-  MEETING
-  OTHER
+}
+
+enum EnumGenre {
+  POP
+  ROCK
+  RAP
+  JAZZ
+  CLASSIQUE
+  ELECTRO
+  METAL
+  REGGAE
+  BLUES
 }
 
 datasource db {
@@ -33,6 +44,7 @@ model Place {
   id          Int        @id @default(autoincrement())
   name        String
   description String?
+  capacity    Int
   address     String
   city        String
   zip         String
@@ -46,24 +58,47 @@ model Event {
   description        String
   type               EnumEventType
   date               DateTime?            @default(now())
+  image              String?
+  artist_id          Int?
+  artist             Artist?              @relation(fields: [artist_id], references: [id])
+  genre_id           Int?
+  genre              Genre?                @relation(fields: [genre_id], references: [id])
   place_id           Int
   place              Place                @relation(fields: [place_id], references: [id])
-  SeatTypesForEvents SeatTypesForEvents[]
+  EventSeatType EventSeatType[]
+}
+
+model Artist {
+  id    Int    @id @default(autoincrement())
+  name  String
+  image String?
+  bio   String?
+  genre_id Int
+  genre Genre @relation(fields: [genre_id], references: [id])
+  events Event[]
+}
+
+model Genre {
+  id   Int    @id @default(autoincrement())
+  name EnumGenre
+  artists Artist[]
+  events Event[]
 }
 
 model SeatType {
   id                 Int                  @id @default(autoincrement())
-  name               String               @unique()
+  name               String
   description        String?
   capacity           Int
   place_id           Int
   place              Place                @relation(fields: [place_id], references: [id])
-  SeatTypesForEvents SeatTypesForEvents[]
+  EventSeatType EventSeatType[]
 }
 
-model SeatTypesForEvents {
+model EventSeatType {
   id           Int         @id @default(autoincrement())
   price        Int
+  available_seats Int
   event_id     Int
   event        Event       @relation(fields: [event_id], references: [id])
   seat_type_id Int
@@ -87,7 +122,7 @@ model OrderItem {
   order_id     Int
   order        Order              @relation(fields: [order_id], references: [id])
   seat_type_id Int
-  seatType     SeatTypesForEvents @relation(fields: [seat_type_id], references: [id])
+  seatType     EventSeatType @relation(fields: [seat_type_id], references: [id])
   quantity     Int
   created_at   DateTime?          @default(now())
   updated_at   DateTime?          @updatedAt

@@ -4,6 +4,7 @@ import { DatabaseModule } from '@ticket-app/database';
 import { ClientsModule } from '@nestjs/microservices';
 import { PlaceController } from './place.controller';
 import { SeatTypeController } from './seat-type.controller';
+import { GenreController } from './genre.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { SeatTypeController } from './seat-type.controller';
       },
     ]),
   ],
-  controllers: [EventController, PlaceController, SeatTypeController],
+  controllers: [EventController, PlaceController, SeatTypeController, GenreController],
   providers: [],
 })
 export class EventModule {}

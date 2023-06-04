@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Prisma } from '@prisma/client';
-import { IsOptional, IsPostalCode, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsPostalCode, IsString } from 'class-validator';
 
 export class CreatePlaceDto implements Prisma.PlaceCreateInput {
   @ApiProperty({default: 'name'})
@@ -23,4 +23,8 @@ export class CreatePlaceDto implements Prisma.PlaceCreateInput {
   @ApiProperty({default: '75000'})
   @IsPostalCode('FR')
   zip: string;
+
+  @ApiProperty({default: 1000})
+  @IsInt()
+  capacity: number;
 }

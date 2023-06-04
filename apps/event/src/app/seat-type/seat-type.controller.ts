@@ -27,7 +27,6 @@ export class SeatTypeController {
 
   @MessagePattern({ cmd: 'updateSeatType' })
   async updateSeatType(@Payload('where') where: Prisma.UserWhereUniqueInput, @Payload('data', new ValidationPipe()) data: UpdateSeatTypeDto): Promise<SeatType> {
-    Logger.log(data, 'updateSeatType');
     return this.seatTypeService.updateSeatType({where, data});
   }
 
