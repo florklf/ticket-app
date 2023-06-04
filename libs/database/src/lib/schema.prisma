@@ -30,14 +30,14 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
-  firstname String?
-  lastname  String?
-  role      String? @default("USER")
-  password  String
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  firstname  String?
+  lastname   String?
+  role       String?   @default("USER")
+  password   String
   created_at DateTime? @default(now())
-  Order     Order[]
+  Order      Order[]
 }
 
 model Place {
@@ -53,86 +53,100 @@ model Place {
 }
 
 model Event {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  description        String
-  type               EnumEventType
-  date               DateTime?            @default(now())
-  image              String?
-  artist_id          Int?
-  artist             Artist?              @relation(fields: [artist_id], references: [id])
-  genre_id           Int?
-  genre              Genre?                @relation(fields: [genre_id], references: [id])
-  place_id           Int
-  place              Place                @relation(fields: [place_id], references: [id])
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String
+  type          EnumEventType
+  date          DateTime?       @default(now())
+  image         String?
+  artist_id     Int?
+  artist        Artist?         @relation(fields: [artist_id], references: [id])
+  genre_id      Int?
+  genre         Genre?          @relation(fields: [genre_id], references: [id])
+  place_id      Int
+  place         Place           @relation(fields: [place_id], references: [id])
   EventSeatType EventSeatType[]
 }
 
 model Artist {
-  id    Int    @id @default(autoincrement())
-  name  String
-  image String?
-  bio   String?
+  id       Int     @id @default(autoincrement())
+  name     String
+  image    String?
+  bio      String?
   genre_id Int
-  genre Genre @relation(fields: [genre_id], references: [id])
-  events Event[]
+  genre    Genre   @relation(fields: [genre_id], references: [id])
+  events   Event[]
 }
 
 model Genre {
-  id   Int    @id @default(autoincrement())
-  name EnumGenre
+  id      Int       @id @default(autoincrement())
+  name    EnumGenre
   artists Artist[]
-  events Event[]
+  events  Event[]
 }
 
 model SeatType {
-  id                 Int                  @id @default(autoincrement())
-  name               String
-  description        String?
-  capacity           Int
-  place_id           Int
-  place              Place                @relation(fields: [place_id], references: [id])
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String?
+  capacity      Int
+  place_id      Int
+  place         Place           @relation(fields: [place_id], references: [id])
   EventSeatType EventSeatType[]
 }
 
 model EventSeatType {
-  id           Int         @id @default(autoincrement())
-  price        Int
+  id              Int         @id @default(autoincrement())
+  price           Int
   available_seats Int
-  event_id     Int
-  event        Event       @relation(fields: [event_id], references: [id])
-  seat_type_id Int
-  seatType     SeatType    @relation(fields: [seat_type_id], references: [id])
-  OrderItem    OrderItem[]
-  assignedAt   DateTime    @default(now())
+  event_id        Int
+  event           Event       @relation(fields: [event_id], references: [id])
+  seat_type_id    Int
+  seatType        SeatType    @relation(fields: [seat_type_id], references: [id])
+  OrderItem       OrderItem[]
+  assignedAt      DateTime    @default(now())
 }
 
 model Order {
-  id         Int         @id @default(autoincrement())
-  user_id    Int
-  user       User        @relation(fields: [user_id], references: [id])
-  created_at DateTime?   @default(now())
-  updated_at DateTime?   @updatedAt
-  orderItems OrderItem[]
-  payment    Payment?
+  id               Int         @id @default(autoincrement())
+  user_id          Int
+  user             User        @relation(fields: [user_id], references: [id])
+  snipcart_id      String      @db.Uuid
+  billing_address  String
+  billing_city     String
+  billing_zip      String
+  billing_country  String
+  shipping_address String
+  shipping_city    String
+  shipping_zip     String
+  shipping_country String
+  created_at       DateTime?   @default(now())
+  updated_at       DateTime?   @updatedAt
+  orderItems       OrderItem[]
+  payment          Payment?
 }
 
 model OrderItem {
-  id           Int                @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   order_id     Int
-  order        Order              @relation(fields: [order_id], references: [id])
+  order        Order         @relation(fields: [order_id], references: [id])
   seat_type_id Int
   seatType     EventSeatType @relation(fields: [seat_type_id], references: [id])
   quantity     Int
-  created_at   DateTime?          @default(now())
-  updated_at   DateTime?          @updatedAt
+  qr_code      String?
+  qr_code_scan DateTime?
+  created_at   DateTime?     @default(now())
+  updated_at   DateTime?     @updatedAt
 }
 
 model Payment {
-  id         Int       @id @default(autoincrement())
-  order_id   Int       @unique
-  order      Order     @relation(fields: [order_id], references: [id])
-  amount     Float
-  status     String
-  created_at DateTime  @default(now())
+  id             Int      @id @default(autoincrement())
+  order_id       Int      @unique
+  order          Order    @relation(fields: [order_id], references: [id])
+  amount         Float
+  status         String
+  payment_method String
+  card_type      String
+  card_last4     Int      @db.SmallInt
+  created_at     DateTime @default(now())
 }
