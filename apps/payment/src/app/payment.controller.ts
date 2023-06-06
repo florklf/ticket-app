@@ -33,4 +33,9 @@ export class PaymentController {
   async removePayment(data: Prisma.PaymentWhereUniqueInput) {
     return await this.paymentService.removePayment(data);
   }
+
+  @MessagePattern({ cmd: 'handleSnipcartWebhook' })
+  async handleSnipcartWebhook({snipcartRequestToken, body}: {snipcartRequestToken: string, body: any}) {
+    return await this.paymentService.handleSnipcartWebhook(snipcartRequestToken, body);
+  }
 }

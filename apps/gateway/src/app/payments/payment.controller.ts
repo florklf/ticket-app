@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Headers } from '@nestjs/common';
 import { Payment } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
@@ -46,6 +46,12 @@ export class PaymentController {
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<Payment> {
     return await lastValueFrom(await this.client.send({ cmd: 'removePayment' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Post('hook')
+  async handleSnipcartWebhook(@Headers('x-snipcart-requesttoken') snipcartRequestToken: any, @Body() body: any): Promise<boolean> {
+    return await lastValueFrom(await this.client.send({ cmd: 'handleSnipcartWebhook' }, { snipcartRequestToken, body })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }
