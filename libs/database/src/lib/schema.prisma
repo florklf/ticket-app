@@ -132,11 +132,19 @@ model OrderItem {
   order        Order         @relation(fields: [order_id], references: [id])
   seat_type_id Int
   seatType     EventSeatType @relation(fields: [seat_type_id], references: [id])
+  qrCode       QRCode[]
   quantity     Int
-  qr_code      String?
-  qr_code_scan DateTime?
   created_at   DateTime?     @default(now())
   updated_at   DateTime?     @updatedAt
+}
+
+model QRCode {
+  id            Int        @id @default(autoincrement())
+  order_item_id Int?
+  OrderItem     OrderItem? @relation(fields: [order_item_id], references: [id])
+  qr_code       String
+  qr_code_scan  DateTime?
+  created_at    DateTime   @default(now())
 }
 
 model Payment {

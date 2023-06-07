@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './payment.service';
-import { DatabaseModule } from '@ticket-app/database';
-import { ClientsModule } from '@nestjs/microservices';
+import { CommonModule } from '@ticket-app/common';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [CommonModule],
   controllers: [PaymentController],
   providers: [PaymentService],
 })

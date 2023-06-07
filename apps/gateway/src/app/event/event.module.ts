@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { EventController } from './event.controller';
-import { DatabaseModule } from '@ticket-app/database';
 import { ClientsModule } from '@nestjs/microservices';
 import { PlaceController } from './place.controller';
 import { SeatTypeController } from './seat-type.controller';
 import { GenreController } from './genre.controller';
+import { CommonModule } from '@ticket-app/common';
 
 @Module({
-  imports: [
-    DatabaseModule,
+  imports: [CommonModule,
     ClientsModule.register([
       {
         name: 'EVENT_CLIENT',

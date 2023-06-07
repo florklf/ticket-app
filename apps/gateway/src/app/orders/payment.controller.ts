@@ -8,7 +8,7 @@ import { CreatePaymentDto, UpdatePaymentDto } from '@ticket-app/common';
 @Controller('payments')
 @ApiTags('payments')
 export class PaymentController {
-  constructor(@Inject('PAYMENT_CLIENT') private readonly client: ClientProxy) {}
+  constructor(@Inject('ORDER_CLIENT') private readonly client: ClientProxy) {}
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Payment> {
@@ -50,7 +50,7 @@ export class PaymentController {
   }
 
   @Post('hook')
-  async handleSnipcartWebhook(@Headers('x-snipcart-requesttoken') snipcartRequestToken: any, @Body() body: any): Promise<boolean> {
+  async handleSnipcartWebhook(@Headers('x-snipcart-requesttoken') snipcartRequestToken: string, @Body() body: any): Promise<any> {
     return await lastValueFrom(await this.client.send({ cmd: 'handleSnipcartWebhook' }, { snipcartRequestToken, body })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
