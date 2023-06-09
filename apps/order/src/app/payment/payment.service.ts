@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Payment, Prisma, PrismaService } from '@ticket-app/database';
+import * as qrCode from 'qrcode';
 
 @Injectable()
 export class PaymentService {
@@ -111,6 +112,27 @@ export class PaymentService {
         },
       });
     }
+    // Create QR codes
+    const orderItemsWithSeatType = await this.prisma.orderItem.findMany({
+      where: {
+        order_id: order.id,
+      },
+      include: {
+        seatType: true,
+      },
+    });
+    for (const orderItem of orderItemsWithSeatType) {
+      for (let i = 0; i < orderItem.quantity; i++) {
+        const code = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const qr = await qrCode.toDataURL(code);
+        await this.prisma.qRCode.create({
+          data: {
+            order_item_id: orderItem.id,
+            qr_code: qr,
+          },
+        });
+      }
+    }
     return true;
   }
 
@@ -127,8 +149,7 @@ export class PaymentService {
         throw new Error('Invalid Snipcart request token');
       }
     } catch (err) {
-      console.log(`Error verifying Snipcart webhook token: ${err}`);
-      return false;
+      throw new Error(`Error verifying Snipcart request token: ${err}`);
     }
     // Handle event
     const { eventName, mode, content } = body;

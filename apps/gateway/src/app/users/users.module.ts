@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
-import { DatabaseModule } from '@ticket-app/database';
 import { ClientsModule } from '@nestjs/microservices';
+import { CommonModule } from '@ticket-app/common';
 
 @Module({
-  imports: [DatabaseModule,
+  imports: [CommonModule,
     ClientsModule.register([{
       name: 'USER_CLIENT',
       options: {
