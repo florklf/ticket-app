@@ -1,9 +1,10 @@
-import { Controller, Get, Inject, UseGuards, Request, Query, Param } from '@nestjs/common';
+import { Controller, Get, Inject, UseGuards, Request, Query, Param, Post, Body, ValidationPipe } from '@nestjs/common';
 import { Order } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../common/guards/auth.guard';
+import { VerifyOrderDto } from '@ticket-app/common';
 
 @Controller('orders')
 @ApiTags('orders')
@@ -31,5 +32,14 @@ export class OrderController {
   async findOne(@Param('id') id: string, @Query('include') include: boolean, @Request() req: Request & { jwtPayload: any }): Promise<Order> {
     return await lastValueFrom(await this.client.send({ cmd: 'findOrder' }, { id: +id, user_id: req.jwtPayload?.user?.id, include })
       .pipe(catchError(error => throwError(() => new RpcException(error)))));
+  }
+
+  @Post('verify')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({ type: [VerifyOrderDto] })
+  async verify(@Body(new ValidationPipe) qrcode: VerifyOrderDto): Promise<Order> {
+    return await lastValueFrom(await this.client.send({ cmd: 'verifyOrder' }, qrcode)
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }
