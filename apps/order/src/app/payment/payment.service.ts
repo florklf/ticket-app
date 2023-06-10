@@ -128,6 +128,7 @@ export class PaymentService {
         await this.prisma.qRCode.create({
           data: {
             order_item_id: orderItem.id,
+            qr_code_decoded: code,
             qr_code: qr,
           },
         });

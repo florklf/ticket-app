@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Order, OrderItem, Prisma, PrismaService } from '@ticket-app/database';
+import { Order, Prisma, PrismaService } from '@ticket-app/database';
 
 @Injectable()
 export class OrderService {
@@ -31,5 +31,58 @@ export class OrderService {
             where,
             orderBy,
         });
+    }
+
+    async verifyOrder(where: Prisma.QRCodeWhereInput): Promise<Order> {
+        // Get QR code
+        const qrCode = await this.prisma.qRCode.findFirstOrThrow({
+            where,
+            include: {
+            OrderItem: {
+                include: {
+                order: true,
+                },
+            },
+            },
+        });
+        // Check if order is paid
+        const order = await this.prisma.orderItem.findUniqueOrThrow({
+            where: {
+                id: qrCode.order_item_id
+            },
+            include: {
+                order: {
+                    include: {
+                        payment: true,
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                firstname: true,
+                                lastname: true,
+                                created_at: true,
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        if (order.order.payment.status !== 'Paid') {
+          throw new Error('Order not paid');
+        }
+        // Check if QR code is already used
+        if (qrCode.qr_code_scan) {
+          throw new Error('QR code already used');
+        }
+        // Update QR code
+        await this.prisma.qRCode.update({
+          where: {
+            id: qrCode.id,
+          },
+          data: {
+            qr_code_scan: new Date(),
+          },
+        });
+        return order.order;
     }
 }

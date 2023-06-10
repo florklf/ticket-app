@@ -1,7 +1,8 @@
-import { Controller } from '@nestjs/common';
+import { Controller, ValidationPipe } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { ApiTags } from '@nestjs/swagger';
-import { MessagePattern, RpcException } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { VerifyOrderDto } from '@ticket-app/common';
 
 @ApiTags('order')
 @Controller()
@@ -42,5 +43,10 @@ export class OrderController {
     } catch (error) {
       throw new RpcException('Order not found');
     }
+  }
+
+  @MessagePattern({ cmd: 'verifyOrder' })
+  async verifyPayment(@Payload(new ValidationPipe()) qrcode: VerifyOrderDto) {
+    return await this.orderService.verifyOrder(qrcode);
   }
 }
