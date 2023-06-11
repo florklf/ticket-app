@@ -108,7 +108,6 @@ export class EventController {
       method: 'POST',
       body: formData
       }).then(res => res.json());
-    console.info(imageData)
 
     return await lastValueFrom(
       await this.client.send(

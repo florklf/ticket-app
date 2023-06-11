@@ -124,7 +124,6 @@ export class EventController {
 
   @MessagePattern({ cmd: 'uploadImage' })
   async createImage({file, id}: {file: Express.Multer.File, id: number}): Promise<Event> {
-    console.log(file)
     const event = await this.eventService.event({where: {id: id}});
     if (!event) {
       throw 'event not found';
@@ -135,7 +134,6 @@ export class EventController {
       method: 'POST',
       body: formData
       }).then(res => res.json());
-    console.info(imageData)
     return await this.eventService.updateEvent({
       where: {
         id: id
