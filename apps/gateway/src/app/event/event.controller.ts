@@ -20,8 +20,12 @@ export class EventController {
   async countEvents(@Query(new ValidationPipe({transform:true})) query: FindEventsDto): Promise<Event[]> {
     return await lastValueFrom(await this.client.send({ cmd: 'countEvents' }, {
       type: query.type ?? undefined,
-      genre: {
-        name: query.genre ?? undefined,
+      eventGenres: {
+        some: {
+          genre: {
+            name: query.genre ?? undefined,
+          },
+        },
       },
     })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -41,9 +45,13 @@ export class EventController {
       skip: (query.page && query.limit) ? query.page * query.limit : undefined,
       where: {
         type: query.type ?? undefined,
-        genre: {
-          name: query.genre ?? undefined,
-        },
+        eventGenres: query.genre ? {
+          some: {
+            genre: {
+              name: query.genre,
+            },
+          },
+        } : undefined,
       },
     })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));

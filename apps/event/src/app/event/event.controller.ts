@@ -22,8 +22,8 @@ export class EventController {
             seatType: true
           }
         },
-        genre: true,
-        artist: true,
+        eventGenres: true,
+        eventArtists: true,
       },
     });
   }
@@ -37,17 +37,28 @@ export class EventController {
   }): Promise<Event[]> {
     const { skip, take, orderBy, where } = params;
 
-    return await this.eventService.events({
+    const events= await this.eventService.events({
       orderBy: orderBy ?? {
         date: 'asc'
       },
       include: {
-        place: true
+        place: true,
+        eventGenres: {
+          include: {
+            genre: true,
+          }
+        },
+        eventArtists: {
+          include: {
+            artist: true,
+          }
+        }
       },
       take,
       skip,
       where
     });
+    return events;
   }
 
   @MessagePattern({ cmd: 'countEvents' })
