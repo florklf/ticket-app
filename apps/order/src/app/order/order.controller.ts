@@ -28,8 +28,8 @@ export class OrderController {
                 include: {
                   event: {
                     include: {
-                      artist: true,
-                      genre: true,
+                      eventArtists: true,
+                      eventGenres: true,
                       place: true,
                     }
                   },

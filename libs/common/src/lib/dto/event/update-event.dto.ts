@@ -23,5 +23,27 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
 
   @ApiProperty({ enum: EnumEventType })
   @IsEnum(EnumEventType)
+  @IsOptional()
   type?: EnumEventType;
+
+  @ApiProperty({default: 'image'})
+  @IsString()
+  @IsOptional()
+  image?: string;
+
+  @ApiProperty({default: {
+    connect: {
+      id: 1
+    }
+  }})
+  @IsOptional()
+  eventGenres?: Prisma.EventGenreCreateNestedManyWithoutEventInput;
+
+  @ApiProperty({default: {
+    connect: {
+      id: 1
+    }
+  }})
+  @IsOptional()
+  eventArtists?: Prisma.EventArtistCreateNestedManyWithoutEventInput;
 }

@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { Event, Prisma, PrismaService } from '@ticket-app/database';
+import { catchError, lastValueFrom, throwError } from 'rxjs';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, @Inject('SEARCH_CLIENT') private readonly searchClient: ClientProxy) { }
 
   async event(params: {
     where?: Prisma.EventWhereUniqueInput;
@@ -36,23 +38,32 @@ export class EventService {
   }
 
   async createEvent(data: Prisma.EventCreateInput): Promise<Event> {
-    return this.prisma.event.create({
+    const event = await this.prisma.event.create({
       data,
     });
+    return lastValueFrom(await this.searchClient.send({ cmd: 'indexDocument' }, { event, type: 'create' })
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))))
+      .then(() => event);
   }
 
   async updateEvent(params: { where: Prisma.EventWhereUniqueInput; data: Prisma.EventUpdateInput }): Promise<Event> {
     const { where, data } = params;
-    return this.prisma.event.update({
+    const event = await this.prisma.event.update({
       data,
       where,
     });
+    return lastValueFrom(await this.searchClient.send({ cmd: 'indexDocument' }, { event, type: 'update' })
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))))
+      .then(() => event);
   }
 
   async deleteEvent(where: Prisma.EventWhereUniqueInput): Promise<Event> {
-    return this.prisma.event.delete({
+    const event = await this.prisma.event.delete({
       where,
     });
+    return lastValueFrom(await this.searchClient.send({ cmd: 'deleteDocument' }, event.id )
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))))
+    .then(() => event);
   }
 
   async countEvents(where: Prisma.EventWhereInput): Promise<number> {

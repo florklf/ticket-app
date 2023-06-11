@@ -4,7 +4,7 @@ import { fakerFR as faker } from '@faker-js/faker';
 import * as dotenv from 'dotenv';
 import * as bcrypt from 'bcrypt';
 
-const prisma  = new PrismaClient();
+const prisma = new PrismaClient();
 
 
 function getRandomProperty(obj: any) {
@@ -13,11 +13,11 @@ function getRandomProperty(obj: any) {
 }
 
 const fakerUser = (): any => {
-    const firstname = faker.person.firstName();
-    const lastname = faker.person.lastName();
-    const email = faker.internet.email({firstName: firstname, lastName: lastname});
-    const password = bcrypt.hashSync('password', 10);
-    return { firstname, lastname, email, password };
+  const firstname = faker.person.firstName();
+  const lastname = faker.person.lastName();
+  const email = faker.internet.email({ firstName: firstname, lastName: lastname });
+  const password = bcrypt.hashSync('password', 10);
+  return { firstname, lastname, email, password };
 };
 
 const fakerPlace = (): any => {
@@ -26,7 +26,7 @@ const fakerPlace = (): any => {
   const address = faker.location.streetAddress();
   const city = faker.location.city();
   const zip = faker.location.zipCode();
-  const capacity = faker.number.int({min: 1000, max: 5000})
+  const capacity = faker.number.int({ min: 1000, max: 5000 })
   return { name, description, address, city, zip, capacity };
 }
 
@@ -42,22 +42,6 @@ const fakerEvent = async (location_id: number): Promise<Prisma.EventCreateInput>
   };
   const image = faker.image.url();
   const event = { name, description, date, place, type, image };
-  if (type === EnumEventType.CONCERT) {
-    const genresCount = await prisma.genre.count();
-    const artistsCount = await prisma.genre.count();
-    return { ...event,
-      genre: {
-        connect: {
-          id: Math.floor(Math.random() * genresCount) + 1,
-        }
-      },
-      artist: {
-        connect: {
-          id: Math.floor(Math.random() * artistsCount) + 1,
-        }
-      }
-    }
-  }
   return event;
 }
 
@@ -70,7 +54,7 @@ const fakerSeatType = (placeParam: Place, seatTypeName: string): any => {
       id: placeParam.id,
     },
   };
-  return { name, description, capacity, place};
+  return { name, description, capacity, place };
 }
 
 async function main() {
@@ -106,7 +90,7 @@ async function main() {
     const place = await prisma.place.create({ data: fakerPlace() });
 
     /// --------- Seat types ---------------
-  const seatTypeNames = ['VIP', 'CAT1', 'CAT2', 'CAT3', 'CAT4', 'CAT5', 'CAT6', 'CAT7', 'CAT8', 'CAT9', 'CAT10']
+    const seatTypeNames = ['VIP', 'CAT1', 'CAT2', 'CAT3', 'CAT4', 'CAT5', 'CAT6', 'CAT7', 'CAT8', 'CAT9', 'CAT10']
     for (let i = 0; i < 3; i++) {
       const name = seatTypeNames[Math.floor(Math.random() * seatTypeNames.length)];
       seatTypeNames.splice(seatTypeNames.indexOf(name), 1);
@@ -124,15 +108,41 @@ async function main() {
       },
     });
     const event = await prisma.event.create({ data: await fakerEvent(location[0].id) });
-  /// --------- SeatTypeForEvent ---------------
+    /// --------- SeatTypeForEvent ---------------
     for (let i = 0; i < 3; i++) {
       const seatType = location[0].seatTypes[Math.floor(Math.random() * location[0].seatTypes.length)];
       await prisma.eventSeatType.create({
         data: {
-          price: +faker.commerce.price({min: 20, max: 200}),
+          price: +faker.commerce.price({ min: 20, max: 200 }),
           available_seats: seatType.capacity,
           event_id: event.id,
           seat_type_id: seatType.id,
+        }
+      });
+    }
+    /// --------- ArtistsForEvent ---------------
+    for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
+      const artist = await prisma.artist.findMany({
+        take: 1,
+        skip: Math.floor(Math.random() * 10),
+      });
+      await prisma.eventArtist.create({
+        data: {
+          event_id: event.id,
+          artist_id: artist[0].id,
+        }
+      });
+    }
+    /// --------- GenresForEvent ---------------
+    for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
+      const genre = await prisma.genre.findMany({
+        take: 1,
+        skip: Math.floor(Math.random() * 9),
+      });
+      await prisma.eventGenre.create({
+        data: {
+          event_id: event.id,
+          genre_id: genre[0].id,
         }
       });
     }
