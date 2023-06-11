@@ -17,6 +17,8 @@ export class PrismaExceptionInterceptor implements NestInterceptor {
             switch (err.code) {
               case 'P2002':
                 return throwError(() => new RpcException(new ConflictException(message)))
+              case 'P2003':
+                return throwError(() => new RpcException(new BadRequestException(message)))
               case 'P2025':
                 return throwError(() => new RpcException(new NotFoundException(message)))
               default:

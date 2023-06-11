@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { Event, EventSeatType } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateEventDto, FindEventsDto, UpdateEventDto } from '@ticket-app/common';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Express } from 'express'
+import { Multer } from 'multer';
 @Controller('events')
 @ApiTags('events')
 export class EventController {
@@ -88,5 +90,33 @@ export class EventController {
   async findEventSeatTypeForSnipcart(@Param('id') id: string): Promise<EventSeatType> {
     return await lastValueFrom(await this.client.send({ cmd: 'findEventSeatTypeForSnipcart' }, { id: +id })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Post(':id/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile(
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 100000 }),
+        new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif)$/ }),
+      ]
+    })
+  ) file: Express.Multer.File, @Param('id') id: string) {
+    const formData = new FormData();
+    formData.append('image', file.buffer.toString('base64'));
+    const imageData = await fetch(`https://api.imgbb.com/1/upload?key=${process.env.IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: formData
+      }).then(res => res.json());
+
+    return await lastValueFrom(
+      await this.client.send(
+        { cmd: 'updateEvent' },
+        {
+          where: { id: +id },
+          data: { image: imageData.data.url },
+        }
+      )
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }
