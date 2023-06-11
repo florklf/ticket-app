@@ -1,6 +1,7 @@
 import { EnumEventType, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateEventDto implements Prisma.EventUpdateInput {
   @ApiProperty({default: 'name'})
@@ -13,23 +14,21 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
   @IsString()
   description?: string;
 
+  @Transform( ({ value }) => value && new Date(value))
   @IsOptional()
+  @Type(() => Date)
   @IsDate()
   date?: Date;
 
-  @ApiProperty({default: 'place'})
+  @ApiProperty()
   @IsOptional()
   place?: Prisma.PlaceCreateNestedOneWithoutEventsInput;
 
   @ApiProperty({ enum: EnumEventType })
+  @IsOptional()
   @IsEnum(EnumEventType)
   @IsOptional()
   type?: EnumEventType;
-
-  @ApiProperty({default: 'image'})
-  @IsString()
-  @IsOptional()
-  image?: string;
 
   @ApiProperty({default: {
     connect: {
@@ -44,6 +43,12 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
       id: 1
     }
   }})
+
   @IsOptional()
   eventArtists?: Prisma.EventArtistCreateNestedManyWithoutEventInput;
+
+  @ApiProperty({default: 'https://picsum.photos/seed/picsum/1000'})
+  @IsOptional()
+  @IsString()
+  image?: string | Prisma.NullableStringFieldUpdateOperationsInput | null | undefined;
 }

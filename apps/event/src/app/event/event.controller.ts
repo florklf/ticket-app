@@ -5,7 +5,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateEventDto, UpdateEventDto } from '@ticket-app/common';
 import { EventSeatTypeService } from './event-seat-type.service';
-
+import { Express } from 'express'
+import { Multer } from 'multer';
 @ApiTags('event')
 @Controller()
 export class EventController {
@@ -45,12 +46,17 @@ export class EventController {
   }): Promise<Event[]> {
     const { skip, take, orderBy, where } = params;
 
-    const events= await this.eventService.events({
+    await this.eventService.events({
       orderBy: orderBy ?? {
         date: 'asc'
       },
       include: {
         place: true,
+        EventSeatType: {
+          include: {
+            seatType: true
+          }
+        },
         eventGenres: {
           include: {
             genre: true,
@@ -66,7 +72,6 @@ export class EventController {
       skip,
       where
     });
-    return events;
   }
 
   @MessagePattern({ cmd: 'countEvents' })
@@ -96,7 +101,7 @@ export class EventController {
 
   @MessagePattern({ cmd: 'updateEvent' })
   async updateEvent(@Payload('where') where: Prisma.UserWhereUniqueInput, @Payload('data') data: UpdateEventDto): Promise<Event> {
-    return this.eventService.updateEvent({where, data});
+    return await this.eventService.updateEvent({where, data});
   }
 
   @MessagePattern({ cmd: 'removeEvent' })
@@ -115,5 +120,29 @@ export class EventController {
       url: `${process.env.EXPOSED_HOST}/events/seat-types/${eventSeatType.id.toString()}`,
       "customFields": [],
     }
+  }
+
+  @MessagePattern({ cmd: 'uploadImage' })
+  async createImage({file, id}: {file: Express.Multer.File, id: number}): Promise<Event> {
+    console.log(file)
+    const event = await this.eventService.event({where: {id: id}});
+    if (!event) {
+      throw 'event not found';
+    }
+    const formData = new FormData();
+    formData.append('image', file.buffer.toString('base64'));
+    const imageData = await fetch(`https://api.imgbb.com/1/upload?expiration=600&key=${process.env.IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: formData
+      }).then(res => res.json());
+    console.info(imageData)
+    return await this.eventService.updateEvent({
+      where: {
+        id: id
+      },
+      data: {
+        image: imageData.data.url
+      }
+    });
   }
 }
