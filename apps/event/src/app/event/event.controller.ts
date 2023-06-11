@@ -22,8 +22,16 @@ export class EventController {
             seatType: true
           }
         },
-        eventGenres: true,
-        eventArtists: true,
+        eventGenres: {
+          include: {
+            genre: true,
+          }
+        },
+        eventArtists: {
+          include: {
+            artist: true,
+          }
+        }
       },
     });
   }
