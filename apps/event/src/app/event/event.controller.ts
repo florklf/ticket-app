@@ -46,7 +46,7 @@ export class EventController {
   }): Promise<Event[]> {
     const { skip, take, orderBy, where } = params;
 
-    await this.eventService.events({
+    return await this.eventService.events({
       orderBy: orderBy ?? {
         date: 'asc'
       },
