@@ -7,6 +7,7 @@ import { CreateEventDto, FindEventsDto, UpdateEventDto } from '@ticket-app/commo
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express'
 import { Multer } from 'multer';
+
 @Controller('events')
 @ApiTags('events')
 export class EventController {
@@ -118,5 +119,19 @@ export class EventController {
         }
       )
       .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Post('ids')
+  async findEventsByIds(@Query(new ValidationPipe({transform:true})) query: FindEventsDto, @Body('ids') ids: number[]): Promise<Event[]> {
+    return await lastValueFrom(await this.client.send({ cmd: 'findEvents' }, {
+      take: query.limit ?? undefined,
+      skip: (query.page && query.limit) ? query.page * query.limit : undefined,
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 }

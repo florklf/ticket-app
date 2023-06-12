@@ -5,24 +5,15 @@ export const Mapping: MappingTypeMapping = {
     id: { type: 'keyword' },
     name: { type: 'text' },
     description: { type: 'text' },
-    image: { type: 'text' },
-    eventArtists: {
+    artists: {
       properties: {
-        artist: {
-          properties: {
-            name: { type: 'text' },
-            bio: { type: 'text' },
-          },
-        },
+        name: { type: 'text' },
+        bio: { type: 'text' },
       },
     },
-    eventGenres: {
+    genres: {
       properties: {
-        genre: {
-          properties: {
-            name: { type: 'text' },
-          },
-        },
+        name: { type: 'text' },
       },
     },
     type: { type: 'text' },

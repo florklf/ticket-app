@@ -43,9 +43,8 @@ export class SearchService {
       id: event.id,
       name: event.name,
       description: event.description,
-      image: event.image,
-      eventArtists: artists,
-      eventGenres: genres,
+      artists: artists,
+      genres: genres,
       type: event.type,
       place: {
         name: event.place.name,
@@ -104,14 +103,15 @@ export class SearchService {
     try {
       const index = process.env.ELASTIC_EVENT_INDEX;
       const body = await this.elasticsearchService.search({
-        size,
+        size: size ?? 10000,
         from: page ? page * size : 0,
         index,
         body: {
+          stored_fields: [],
           query: {
             multi_match: {
               query,
-              fields: ['name', 'description', 'eventArtists.artist.name', 'eventArtists.artist.bio', 'eventGenres.genre.name', 'type.name', 'place.name', 'place.address', 'place.city', 'place.zip'],
+              fields: ['name', 'description', 'artist.name', 'artist.bio', 'genre.name', 'type', 'place.name', 'place.address', 'place.city', 'place.zip'],
               fuzziness: 'AUTO',
               prefix_length: 0,
             },
@@ -122,10 +122,9 @@ export class SearchService {
           { date: { order: 'asc' } },
         ],
       });
-      const totalResults = body.hits.total as SearchTotalHits;
       return {
-        total: totalResults.value,
-        results: body.hits.hits.map((hit) => hit._source),
+        total: (body.hits.total as SearchTotalHits).value,
+        results: body.hits.hits.map((hit) => +hit._id),
       }
     } catch (error) {
       throw error;
