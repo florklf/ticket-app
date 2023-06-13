@@ -12,7 +12,12 @@ export class PlaceController {
 
   @MessagePattern({ cmd: 'findPlace' })
   async getPlace(data: Prisma.PlaceWhereUniqueInput): Promise<Place> {
-    return await this.placeService.place(data);
+    return await this.placeService.place({
+      where: data,
+      include: {
+        seatTypes: true,
+      }
+    });
   }
 
   @MessagePattern({ cmd: 'findPlaces' })

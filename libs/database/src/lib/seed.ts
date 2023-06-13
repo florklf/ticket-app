@@ -109,8 +109,7 @@ async function main() {
     });
     const event = await prisma.event.create({ data: await fakerEvent(location[0].id) });
     /// --------- SeatTypeForEvent ---------------
-    for (let i = 0; i < 3; i++) {
-      const seatType = location[0].seatTypes[Math.floor(Math.random() * location[0].seatTypes.length)];
+    location[0].seatTypes.forEach(async seatType => {
       await prisma.eventSeatType.create({
         data: {
           price: +faker.commerce.price({ min: 20, max: 200 }),
@@ -119,7 +118,7 @@ async function main() {
           seat_type_id: seatType.id,
         }
       });
-    }
+    });
     /// --------- ArtistsForEvent ---------------
     for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
       const artist = await prisma.artist.findMany({

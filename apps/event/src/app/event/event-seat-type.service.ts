@@ -6,11 +6,11 @@ export class EventSeatTypeService {
   constructor(private prisma: PrismaService) {}
 
   async eventSeatType(params: {
-    where?: Prisma.EventSeatTypeWhereUniqueInput;
+    where?: Prisma.EventSeatTypeWhereInput;
     include?: Prisma.EventSeatTypeInclude;
   }): Promise<EventSeatType | null> {
     const { where, include } = params;
-    return this.prisma.eventSeatType.findUniqueOrThrow({
+    return this.prisma.eventSeatType.findFirstOrThrow({
       where,
       include,
     });
@@ -35,13 +35,13 @@ export class EventSeatTypeService {
     });
   }
 
-  async createEvent(data: Prisma.EventSeatTypeCreateInput): Promise<EventSeatType> {
+  async createEventSeatType(data: Prisma.EventSeatTypeCreateInput): Promise<EventSeatType> {
     return this.prisma.eventSeatType.create({
       data,
     });
   }
 
-  async updateEvent(params: { where: Prisma.EventSeatTypeWhereUniqueInput; data: Prisma.EventSeatTypeUpdateInput }): Promise<EventSeatType> {
+  async updateEventSeatType(params: { where: Prisma.EventSeatTypeWhereUniqueInput; data: Prisma.EventSeatTypeUpdateInput }): Promise<EventSeatType> {
     const { where, data } = params;
     return this.prisma.eventSeatType.update({
       data,
@@ -49,7 +49,7 @@ export class EventSeatTypeService {
     });
   }
 
-  async deleteEvent(where: Prisma.EventSeatTypeWhereUniqueInput): Promise<EventSeatType> {
+  async deleteEventSeatType(where: Prisma.EventSeatTypeWhereUniqueInput): Promise<EventSeatType> {
     return this.prisma.eventSeatType.delete({
       where,
     });

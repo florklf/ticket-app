@@ -12,3 +12,5 @@ export * from './lib/dto/event/update-genre.dto';
 export * from './lib/dto/event/find-events.dto';
 export * from './lib/dto/orders/find-one-order.dto';
 export * from './lib/dto/orders/verify-order.dto';
+export * from './lib/dto/event/create-event-seat-type.dto';
+export * from './lib/dto/event/update-event-seat-type.dto';

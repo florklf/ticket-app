@@ -12,7 +12,9 @@ export class SeatTypeController {
 
   @MessagePattern({ cmd: 'findSeatType' })
   async getSeatType(data: Prisma.SeatTypeWhereUniqueInput): Promise<SeatType> {
-    return await this.seatTypeService.seatType(data);
+    return await this.seatTypeService.seatType({
+      where: data
+  });
   }
 
   @MessagePattern({ cmd: 'findSeatTypes' })

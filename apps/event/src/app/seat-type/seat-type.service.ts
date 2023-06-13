@@ -5,9 +5,14 @@ import { SeatType, Prisma, PrismaService } from '@ticket-app/database';
 export class SeatTypeService {
   constructor(private prisma: PrismaService) {}
 
-  async seatType(seatTypeWhereUniqueInput: Prisma.SeatTypeWhereUniqueInput): Promise<SeatType | null> {
+  async seatType(params: {
+    where?: Prisma.SeatTypeWhereUniqueInput;
+    include?: Prisma.SeatTypeInclude;
+  }): Promise<SeatType | null> {
+    const { where, include } = params;
     return this.prisma.seatType.findUniqueOrThrow({
-      where: seatTypeWhereUniqueInput,
+      where,
+      include,
     });
   }
 
