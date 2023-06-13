@@ -28,6 +28,11 @@ export class SearchModule implements OnModuleInit {
   constructor(private readonly searchService: SearchService) { }
 
   async onModuleInit() {
-    await this.searchService.createIndex().then();
+    try {
+      await this.searchService.createIndex();
+      await this.searchService.indexAll();
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
