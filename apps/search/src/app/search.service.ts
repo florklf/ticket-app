@@ -27,6 +27,7 @@ export class SearchService {
   }
 
   async indexDocument(document: any, type: string) {
+    const index = process.env.ELASTIC_EVENT_INDEX;
     const event = await this.prisma.event.findUniqueOrThrow({ where: { id: document.id }, include: { eventArtists: true, eventGenres: true, place: true } });
     const artists = (await this.prisma.eventArtist.findMany({ where: { event_id: event.id }, include: { artist: true } })).map((eventArtist) => ({
       artist: {
@@ -56,7 +57,6 @@ export class SearchService {
     };
     if (type === 'create') {
       try {
-        const index = process.env.ELASTIC_EVENT_INDEX;
         await this.elasticsearchService.index({
           index,
           id: document.id,
@@ -69,7 +69,6 @@ export class SearchService {
     }
     else if (type === 'update') {
       try {
-        const index = process.env.ELASTIC_EVENT_INDEX;
         await this.elasticsearchService.update({
           index,
           id: document.id,
@@ -83,6 +82,59 @@ export class SearchService {
       }
     }
     return true;
+  }
+
+  async indexAll() {
+    const index = process.env.ELASTIC_EVENT_INDEX;
+    const { count } = await this.elasticsearchService.count({ index });
+    if (count > 0) return;
+    try {
+      const events = await this.prisma.event.findMany({
+        include: {
+          eventArtists: {
+            include: {
+              artist: true,
+            },
+          },
+          eventGenres: {
+            include: {
+              genre: true,
+            },
+          },
+          place: true,
+        },
+      });
+      for (const event of events) {
+        const artists = event.eventArtists.map((eventArtist) => {
+          return eventArtist.artist.name;
+        });
+        const genres = event.eventGenres.map((eventGenre) => {
+          return eventGenre.genre.name;
+        });
+        const place = event.place;
+        const eventElastic = {
+          id: event.id,
+          name: event.name,
+          description: event.description,
+          date: event.date,
+          type: event.type,
+          image: event.image,
+          artists,
+          genres,
+          place: {
+            name: place.name,
+            address: place.address,
+            city: place.city,
+            zip: place.zip,
+
+          }
+        };
+        await this.indexDocument(eventElastic, 'create');
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
   async deleteDocument(id: string) {
