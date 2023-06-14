@@ -2,7 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Mapping } from './mapping';
 import { SearchTotalHits } from '@elastic/elasticsearch/lib/api/types';
-import { PrismaService } from '@ticket-app/database';
+import { Event, PrismaService } from '@ticket-app/database';
+
+interface IEvent {
+  id: string;
+  name: string;
+  description: string;
+  artists: { name: string, bio: string }[];
+  genres: { name: string }[];
+  type: string;
+  place: {
+    name: string;
+    address: string;
+    city: string;
+    zip: string;
+  },
+  date: Date;
+}
 
 @Injectable()
 export class SearchService {
@@ -26,22 +42,22 @@ export class SearchService {
     }
   }
 
-  async indexDocument(document: any, type: string) {
+  async indexDocument(document: Event | IEvent, type: string) {
     const index = process.env.ELASTIC_EVENT_INDEX;
-    const event = await this.prisma.event.findUniqueOrThrow({ where: { id: document.id }, include: { eventArtists: true, eventGenres: true, place: true } });
-    const artists = (await this.prisma.eventArtist.findMany({ where: { event_id: event.id }, include: { artist: true } })).map((eventArtist) => ({
-      artist: {
+    const event = await this.prisma.event.findUniqueOrThrow({ where: { id: +document.id }, include: { eventArtists: true, eventGenres: true, place: true } });
+    const artists = (await this.prisma.eventArtist.findMany({ where: { event_id: event.id }, include: { artist: true } })).map((eventArtist) => (
+      {
         name: eventArtist.artist.name,
         bio: eventArtist.artist.bio,
       }
-    }));
-    const genres = (await this.prisma.eventGenre.findMany({ where: { event_id: event.id }, include: { genre: true } })).map((eventGenre) => ({
-      genre: {
+    ));
+    const genres = (await this.prisma.eventGenre.findMany({ where: { event_id: event.id }, include: { genre: true } })).map((eventGenre) => (
+      {
         name: eventGenre.genre.name,
       }
-    }));
-    const toIndex = {
-      id: event.id,
+    ));
+    const toIndex: IEvent = {
+      id: event.id.toString(),
       name: event.name,
       description: event.description,
       artists: artists,
@@ -59,7 +75,7 @@ export class SearchService {
       try {
         await this.elasticsearchService.index({
           index,
-          id: document.id,
+          id: document.id.toString(),
           body: toIndex,
         });
       } catch (error) {
@@ -71,7 +87,7 @@ export class SearchService {
       try {
         await this.elasticsearchService.update({
           index,
-          id: document.id,
+          id: document.id.toString(),
           body: {
             doc: toIndex,
           },
@@ -105,20 +121,24 @@ export class SearchService {
         },
       });
       for (const event of events) {
-        const artists = event.eventArtists.map((eventArtist) => {
-          return eventArtist.artist.name;
-        });
-        const genres = event.eventGenres.map((eventGenre) => {
-          return eventGenre.genre.name;
-        });
+        const artists = event.eventArtists.map((eventArtist) => (
+          {
+            name: eventArtist.artist.name,
+            bio: eventArtist.artist.bio,
+          }
+        ));
+        const genres = event.eventGenres.map((eventGenre) => (
+          {
+            name: eventGenre.genre.name,
+          }
+        ));
         const place = event.place;
-        const eventElastic = {
-          id: event.id,
+        const eventElastic: IEvent = {
+          id: event.id.toString(),
           name: event.name,
           description: event.description,
           date: event.date,
           type: event.type,
-          image: event.image,
           artists,
           genres,
           place: {
@@ -152,34 +172,30 @@ export class SearchService {
   }
 
   async search(query: string, page: number, size: number) {
-    try {
-      const index = process.env.ELASTIC_EVENT_INDEX;
-      const body = await this.elasticsearchService.search({
-        size: size ?? 10000,
-        from: page ? page * size : 0,
-        index,
-        body: {
-          stored_fields: [],
-          query: {
-            multi_match: {
-              query,
-              fields: ['name', 'description', 'artist.name', 'artist.bio', 'genre.name', 'type', 'place.name', 'place.address', 'place.city', 'place.zip'],
-              fuzziness: 'AUTO',
-              prefix_length: 0,
-            },
+    const index = process.env.ELASTIC_EVENT_INDEX;
+    const body = await this.elasticsearchService.search({
+      size: size ?? 10000,
+      from: page ? page * size : 0,
+      index,
+      body: {
+        stored_fields: [],
+        query: {
+          multi_match: {
+            query,
+            fields: ['name', 'description', 'artist.name', 'artist.bio', 'genre.name', 'type', 'place.name', 'place.address', 'place.city', 'place.zip'],
+            fuzziness: 'AUTO',
+            prefix_length: 0,
           },
         },
-        sort: [
-          { _score: { order: 'desc' } },
-          { date: { order: 'asc' } },
-        ],
-      });
-      return {
-        total: (body.hits.total as SearchTotalHits).value,
-        results: body.hits.hits.map((hit) => +hit._id),
-      }
-    } catch (error) {
-      throw error;
+      },
+      sort: [
+        { _score: { order: 'desc' } },
+        { date: { order: 'asc' } },
+      ],
+    });
+    return {
+      total: (body.hits.total as SearchTotalHits).value,
+      results: body.hits.hits.map((hit) => +hit._id),
     }
   }
 }
