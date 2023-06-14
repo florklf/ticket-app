@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger, RequestTimeoutException } from '@nestjs/common';
-import { compareSync } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { ClientProxy } from '@nestjs/microservices';
 import { timeout, catchError } from 'rxjs/operators';
 import { TimeoutError, lastValueFrom, throwError } from 'rxjs';
@@ -24,8 +24,10 @@ export class AuthService {
       }));
       const user = await lastValueFrom(res);
 
-      if(compareSync(password, user?.password)) {
-        return user;
+      const isMatch = await compare(password, user.password);
+      if (isMatch) {
+        const { password, ...result } = user;
+        return result;
       }
 
       return null;

@@ -10,7 +10,7 @@ COPY . .
 
 RUN npm ci
 
-RUN nx run gateway:lint:production && nx run gateway:build:production
+RUN nx run event:lint:production && nx run event:build:production
 
 RUN npm prune --omit=dev
 
@@ -26,7 +26,5 @@ USER nestjs
 COPY --from=installer --chown=nestjs:nodejs /app/package*.json .
 COPY --from=installer --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=installer --chown=nestjs:nodejs /app/dist ./dist
-COPY --from=installer --chown=nestjs:nodejs /app/libs/database/src/lib/schema.prisma ./dist/libs/database/src/lib/schema.prisma
-COPY --from=installer --chown=nestjs:nodejs /app/libs/database/src/lib/migrations ./dist/libs/database/src/lib/migrations
 
-CMD node dist/apps/gateway/main.js
+CMD node dist/apps/event/main.js
