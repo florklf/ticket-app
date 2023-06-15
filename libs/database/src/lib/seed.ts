@@ -26,8 +26,7 @@ const fakerPlace = (): any => {
   const address = faker.location.streetAddress();
   const city = faker.location.city();
   const zip = faker.location.zipCode();
-  const capacity = faker.number.int({ min: 1000, max: 5000 })
-  return { name, description, address, city, zip, capacity };
+  return { name, description, address, city, zip };
 }
 
 const fakerEvent = async (location_id: number): Promise<Prisma.EventCreateInput> => {
@@ -48,7 +47,7 @@ const fakerEvent = async (location_id: number): Promise<Prisma.EventCreateInput>
 const fakerSeatType = (placeParam: Place, seatTypeName: string): any => {
   const name = seatTypeName;
   const description = faker.lorem.sentence();
-  const capacity = Math.floor(placeParam.capacity / 3);
+  const capacity = faker.number.int({ min: 50, max: 1000 })
   const place = {
     connect: {
       id: placeParam.id,

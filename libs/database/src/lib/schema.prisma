@@ -44,7 +44,6 @@ model Place {
   id          Int        @id @default(autoincrement())
   name        String
   description String?
-  capacity    Int
   address     String
   city        String
   zip         String
@@ -105,7 +104,7 @@ model SeatType {
   description   String?
   capacity      Int
   place_id      Int
-  place         Place           @relation(fields: [place_id], references: [id])
+  place         Place           @relation(fields: [place_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   EventSeatType EventSeatType[]
 }
 

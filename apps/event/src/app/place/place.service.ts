@@ -22,14 +22,16 @@ export class PlaceService {
     cursor?: Prisma.UserWhereUniqueInput;
     where?: Prisma.UserWhereInput;
     orderBy?: Prisma.UserOrderByWithRelationInput;
+    include?: Prisma.PlaceInclude;
   }): Promise<Place[]> {
-    const { skip, take, cursor, where, orderBy } = params;
+    const { skip, take, cursor, where, orderBy, include } = params;
     return this.prisma.place.findMany({
       skip,
       take,
       cursor,
       where,
       orderBy,
+      include
     });
   }
 
