@@ -1,7 +1,7 @@
-import { Controller, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Controller, ValidationPipe } from '@nestjs/common';
 import { Prisma, Place } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
 import { PlaceService } from './place.service';
 import { CreatePlaceDto, UpdatePlaceDto } from '@ticket-app/common';
 
@@ -22,7 +22,11 @@ export class PlaceController {
 
   @MessagePattern({ cmd: 'findPlaces' })
   async findAll(): Promise<Place[]> {
-    return await this.placeService.places({});
+    return await this.placeService.places({
+      include: {
+        seatTypes: true,
+      }
+    });
   }
 
   @MessagePattern({ cmd: 'createPlace' })
@@ -37,6 +41,14 @@ export class PlaceController {
 
   @MessagePattern({ cmd: 'removePlace' })
   async removePlace(data: Prisma.PlaceWhereUniqueInput): Promise<Place> {
+    // check that there are no events in this place
+    const placesWithEvents = Prisma.validator<Prisma.PlaceArgs>()({
+      include: { events: true },
+    })
+    type PlacesWithEvents = Prisma.PlaceGetPayload<typeof placesWithEvents>
+    if (await this.placeService.place({where: data, include: {events: true}}).then((place: PlacesWithEvents) => place.events.length > 0)) {
+      throw new RpcException(new BadRequestException('Cannot delete place with events'));
+    }
     return await this.placeService.deletePlace(data);
   }
 }

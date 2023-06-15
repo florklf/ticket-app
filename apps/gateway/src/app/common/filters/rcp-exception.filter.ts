@@ -12,8 +12,9 @@ import { Response } from 'express';
 export class RcpExceptionFilter implements ExceptionFilter {
 
   catch(exception: RpcException, host: ArgumentsHost): void {
-    Logger.log(exception) 
+    Logger.log(exception, 'prout')
     const error: any = exception.getError();
+    Logger.log(error);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 

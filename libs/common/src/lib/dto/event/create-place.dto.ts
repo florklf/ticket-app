@@ -23,8 +23,4 @@ export class CreatePlaceDto implements Prisma.PlaceCreateInput {
   @ApiProperty({default: '75000'})
   @IsPostalCode('FR')
   zip: string;
-
-  @ApiProperty({default: 1000})
-  @IsInt()
-  capacity: number;
 }
