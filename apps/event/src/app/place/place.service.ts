@@ -5,9 +5,14 @@ import { Place, Prisma, PrismaService } from '@ticket-app/database';
 export class PlaceService {
   constructor(private prisma: PrismaService) {}
 
-  async place(placeWhereUniqueInput: Prisma.PlaceWhereUniqueInput): Promise<Place | null> {
+  async place(params: {
+    where?: Prisma.PlaceWhereUniqueInput;
+    include?: Prisma.PlaceInclude;
+  }): Promise<Place | null> {
+    const { where, include } = params;
+
     return this.prisma.place.findUniqueOrThrow({
-      where: placeWhereUniqueInput,
+      where, include
     });
   }
 

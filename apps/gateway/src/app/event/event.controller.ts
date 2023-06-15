@@ -3,7 +3,7 @@ import { Event, EventSeatType } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateEventDto, FindEventsDto, UpdateEventDto } from '@ticket-app/common';
+import { CreateEventDto, CreateEventSeatTypeDto, FindEventsDto, UpdateEventDto, UpdateEventSeatTypeDto } from '@ticket-app/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express'
 import { Multer } from 'multer';
@@ -90,6 +90,34 @@ export class EventController {
   @Get('seat-types/:id')
   async findEventSeatTypeForSnipcart(@Param('id') id: string): Promise<EventSeatType> {
     return await lastValueFrom(await this.client.send({ cmd: 'findEventSeatTypeForSnipcart' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Post('seat-types')
+  @ApiBody({ type: CreateEventSeatTypeDto })
+  async createEventSeatType(@Body(new ValidationPipe) eventSeatType: EventSeatType): Promise<EventSeatType> {
+    console.log(eventSeatType)
+    return await lastValueFrom(await this.client.send({ cmd: 'createEventSeatType' }, eventSeatType)
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Patch('seat-types/:id')
+  @ApiBody({ type: UpdateEventSeatTypeDto })
+  async updateEventSeatType(@Param('id') id: string, @Body(new ValidationPipe) eventSeatType: EventSeatType): Promise<EventSeatType> {
+    return await lastValueFrom(
+      await this.client.send(
+        { cmd: 'updateEventSeatType' },
+        {
+          where: { id: +id },
+          data: eventSeatType,
+        }
+      )
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Delete('seat-types/:id')
+  async removeEventSeatType(@Param('id') id: string): Promise<EventSeatType> {
+    return await lastValueFrom(await this.client.send({ cmd: 'removeEventSeatType' }, { id: +id })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 

@@ -31,6 +31,7 @@ export class CreateEventDto implements Prisma.EventCreateInput {
   @IsNotEmpty()
   place: Prisma.PlaceCreateNestedOneWithoutEventsInput;
 
+  @IsOptional()
   @ApiProperty({default: 'image'})
   @IsString()
   image: string;
