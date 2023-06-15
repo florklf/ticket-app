@@ -10,7 +10,7 @@ import { CommonModule } from '@ticket-app/common';
       {
         name: 'ORDER_CLIENT',
         options: {
-          host: process.env.HOST,
+          host: process.env.ORDER_TCP_HOST,
           port: process.env.ORDER_TCP_PORT,
         },
       },
@@ -18,7 +18,7 @@ import { CommonModule } from '@ticket-app/common';
     ClientsModule.register([{
       name: 'AUTH_CLIENT',
       options: {
-        host: process.env.HOST,
+        host: process.env.AUTH_TCP_HOST,
         port: process.env.AUTH_TCP_PORT
       }
     }]),

@@ -8,7 +8,7 @@ async function bootstrap() {
     AuthModule,
     {
       options: {
-        host: process.env.HOST,
+        host: process.env.AUTH_TCP_HOST,
         port: process.env.AUTH_TCP_PORT
       }
     },

@@ -8,14 +8,14 @@ import { CommonModule } from '@ticket-app/common';
     ClientsModule.register([{
       name: 'USER_CLIENT',
       options: {
-        host: process.env.HOST,
+        host: process.env.USER_TCP_HOST,
         port: process.env.USER_TCP_PORT,
       }
     }]),
     ClientsModule.register([{
       name: 'AUTH_CLIENT',
       options: {
-        host: process.env.HOST,
+        host: process.env.AUTH_TCP_HOST,
         port: process.env.AUTH_TCP_PORT
       }
     }]),

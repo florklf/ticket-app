@@ -12,7 +12,7 @@ import { CommonModule } from '@ticket-app/common';
       {
         name: 'EVENT_CLIENT',
         options: {
-          host: process.env.HOST,
+          host: process.env.EVENT_TCP_HOST,
           port: process.env.EVENT_TCP_PORT,
         },
       },
