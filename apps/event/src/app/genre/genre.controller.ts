@@ -3,7 +3,7 @@ import { Prisma, Genre } from '@ticket-app/database';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { GenreService } from './genre.service';
-import { CreateGenreDto, UpdateGenreDto } from '@ticket-app/common';
+import { CreateGenreDto, FindGenresDto, UpdateGenreDto } from '@ticket-app/common';
 
 @ApiTags('genres')
 @Controller()
@@ -16,8 +16,18 @@ export class GenreController {
   }
 
   @MessagePattern({ cmd: 'findGenres' })
-  async findAll(): Promise<Genre[]> {
-    return await this.genreService.genres({});
+  async findAll(params: FindGenresDto): Promise<Genre[]> {
+    const { type } = params;
+    return await this.genreService.genres({
+      where: {
+        type: {
+          name: type
+        }
+      },
+      include: {
+        type: true,
+      }
+    });
   }
 
   @MessagePattern({ cmd: 'createGenre' })

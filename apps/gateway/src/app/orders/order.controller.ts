@@ -1,10 +1,12 @@
-import { Controller, Get, Inject, UseGuards, Request, Query, Param, Post, Body, ValidationPipe } from '@nestjs/common';
-import { Order } from '@ticket-app/database';
+import { Controller, Get, Inject, UseGuards, Request, Query, Param, Post, Body, ValidationPipe, Logger } from '@nestjs/common';
+import { EnumRole, Order } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { VerifyOrderDto } from '@ticket-app/common';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Role } from '../common/decorators/roles.decorator';
 
 @Controller('orders')
 @ApiTags('orders')
@@ -22,7 +24,11 @@ export class OrderController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   async findAll(@Request() req: Request & { jwtPayload: any }): Promise<Order[]> {
-    return await lastValueFrom(await this.client.send({ cmd: 'findOrders' }, req.jwtPayload.user.id)
+    if (req.jwtPayload.user.role == EnumRole.ADMIN) {
+      return await lastValueFrom(await this.client.send({ cmd: 'findOrders' }, {})
+        .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+    }
+    return await lastValueFrom(await this.client.send({ cmd: 'findUserOrders' }, req.jwtPayload.user.id)
       .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 

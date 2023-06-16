@@ -1,11 +1,49 @@
 // prisma/seed.ts
-import { PrismaClient, Prisma, EnumEventType, Place, EnumGenre } from '@prisma/client';
+import { PrismaClient, Prisma, EnumEventType, Place, EnumRole } from '@prisma/client';
 import { fakerFR as faker } from '@faker-js/faker';
 import * as dotenv from 'dotenv';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const concertCategories = [
+  'POP',
+  'ROCK',
+  'RAP',
+  'JAZZ',
+  'CLASSIQUE',
+  'ELECTRO',
+  'METAL',
+  'REGGAE',
+  'BLUES'
+];
+
+const spectacleCategories = [
+  'THEATRE',
+  'CIRQUE',
+  'OPERA',
+  'DANSE',
+  'HUMOUR',
+  'BALLET',
+];
+
+const festivalCategories = [
+  'MUSIQUE',
+  'CINEMA',
+  'LIVRE',
+  'ARTS',
+  'GASTRONOMIE',
+  'ENFANTS'
+];
+
+const conferenceCategories = [
+  'TECHNOLOGIE',
+  'SCIENCE',
+  'ECONOMIE',
+  'POLITIQUE',
+  'SANTE',
+  'ENVIRONNEMENT'
+];
 
 function getRandomProperty(obj: any) {
   const keys = Object.keys(obj);
@@ -17,7 +55,8 @@ const fakerUser = (): any => {
   const lastname = faker.person.lastName();
   const email = faker.internet.email({ firstName: firstname, lastName: lastname });
   const password = bcrypt.hashSync('password', 10);
-  return { firstname, lastname, email, password };
+  const role = getRandomProperty(EnumRole) as EnumRole;
+  return { firstname, lastname, email, password, role };
 };
 
 const fakerPlace = (): any => {
@@ -29,18 +68,22 @@ const fakerPlace = (): any => {
   return { name, description, address, city, zip };
 }
 
-const fakerEvent = async (location_id: number): Promise<Prisma.EventCreateInput> => {
+const fakerEvent = async (location_id: number, type_id: number): Promise<Prisma.EventCreateInput> => {
   const name = faker.person.fullName();
   const description = faker.lorem.paragraph();
   const date = faker.date.future();
-  const type: EnumEventType = getRandomProperty(EnumEventType) as EnumEventType;
+  const type = {
+    connect: {
+      id: type_id,
+    }
+  }
   const place = {
     connect: {
       id: location_id,
     },
   };
   const image = faker.image.url();
-  const event = { name, description, date, place, type, image };
+  const event = { name, description, date, place, image, type };
   return event;
 }
 
@@ -66,22 +109,36 @@ async function main() {
     await prisma.user.create({ data: fakerUser() });
   }
 
-  /// --------- Genres ---------------
-  for (const value in EnumGenre) {
-    const genre = await prisma.genre.create({
+  /// --------- Types ---------------
+  for (const value in EnumEventType) {
+    const type = await prisma.type.create({
       data: {
-        name: value as EnumGenre,
+        name: value as EnumEventType,
       },
     });
-    /// --------- Artists ---------------
-    for (let i = 0; i < 10; i++) {
-      await prisma.artist.create({
-        data: {
-          name: faker.person.fullName(),
-          genre_id: genre.id,
-        },
-      });
-    }
+
+    /// --------- Categories ---------------
+      const lowerName = type.name.toLowerCase();
+      for (const category of eval(`${lowerName}Categories`)) {
+        const genre = await prisma.genre.create({
+          data: {
+            name: category,
+            type_id: type.id,
+            },
+          },
+        );
+        /// --------- Artists ---------------
+        if (type.name === EnumEventType.CONCERT) {
+          for (let i = 0; i < 5; i++) {
+            await prisma.artist.create({
+              data: {
+                name: faker.person.fullName(),
+                genre_id: genre.id,
+              },
+            });
+          }
+        }
+      }
   }
 
   /// --------- Places ---------------
@@ -106,7 +163,11 @@ async function main() {
         seatTypes: true,
       },
     });
-    const event = await prisma.event.create({ data: await fakerEvent(location[0].id) });
+    const type = await prisma.type.findMany({
+      take: 1,
+      skip: Math.floor(Math.random() * 4),
+    });
+    const event = await prisma.event.create({ data: await fakerEvent(location[0].id, type[0].id) });
     /// --------- SeatTypeForEvent ---------------
     location[0].seatTypes.forEach(async seatType => {
       await prisma.eventSeatType.create({
@@ -132,15 +193,18 @@ async function main() {
       });
     }
     /// --------- GenresForEvent ---------------
-    for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
-      const genre = await prisma.genre.findMany({
-        take: 1,
-        skip: Math.floor(Math.random() * 9),
-      });
+    const genres = await prisma.genre.findMany({
+      take: Math.floor(Math.random() * 3),
+      skip: Math.floor(Math.random() * 6),
+      where: {
+        type_id: event.type_id,
+      }
+    });
+    for (const genre of genres) {
       await prisma.eventGenre.create({
         data: {
           event_id: event.id,
-          genre_id: genre[0].id,
+          genre_id: genre.id,
         }
       });
     }

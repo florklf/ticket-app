@@ -8,6 +8,7 @@ import { EventSeatTypeService } from './event-seat-type.service';
 import { Express } from 'express'
 import { Multer } from 'multer';
 import { throwError } from 'rxjs';
+import { type } from 'os';
 @ApiTags('event')
 @Controller()
 export class EventController {
@@ -18,6 +19,7 @@ export class EventController {
     return await this.eventService.event({
       where: data,
       include: {
+        type: true,
         place: {
           include: {
             seatTypes: true
@@ -30,7 +32,11 @@ export class EventController {
         },
         eventGenres: {
           include: {
-            genre: true,
+            genre: {
+              include: {
+                type: true
+              },
+            },
           }
         },
         eventArtists: {
@@ -56,6 +62,7 @@ export class EventController {
         date: 'asc'
       },
       include: {
+        type: true,
         place: {
           include: {
             seatTypes: true
@@ -68,7 +75,11 @@ export class EventController {
         },
         eventGenres: {
           include: {
-            genre: true,
+            genre: {
+              include: {
+                type: true
+              },
+            },
           }
         },
         eventArtists: {
@@ -92,10 +103,19 @@ export class EventController {
   async findAllConcerts(): Promise<Event[]> {
     return await this.eventService.events({
       where: {
-        type: EnumEventType.CONCERT,
+        eventGenres: {
+          some: {
+            genre: {
+              type: {
+                name: EnumEventType.CONCERT,
+              }
+            }
+          }
+        }
       },
       include: {
-        place: true
+        place: true,
+        type: true,
       },
       orderBy: {
         date: 'asc'
