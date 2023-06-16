@@ -1,4 +1,4 @@
-import { EnumGenre, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsIn, IsInt, IsOptional } from 'class-validator';
 import { EnumEventType } from '@ticket-app/database';
@@ -22,9 +22,8 @@ export class FindEventsDto {
   type: EnumEventType;
 
   @IsOptional()
-  @ApiProperty({ enum: EnumGenre })
-  @IsEnum(EnumGenre)
-  genre: EnumGenre;
+  @ApiProperty()
+  genre: string;
 
   @IsOptional()
   orderBy: Prisma.EventOrderByWithRelationInput;

@@ -44,7 +44,7 @@ export class SearchService {
 
   async indexDocument(document: Event | IEvent, type: string) {
     const index = process.env.ELASTIC_EVENT_INDEX;
-    const event = await this.prisma.event.findUniqueOrThrow({ where: { id: +document.id }, include: { eventArtists: true, eventGenres: true, place: true } });
+    const event = await this.prisma.event.findUniqueOrThrow({ where: { id: +document.id }, include: { type: true, eventArtists: true, eventGenres: true, place: true } });
     const artists = (await this.prisma.eventArtist.findMany({ where: { event_id: event.id }, include: { artist: true } })).map((eventArtist) => (
       {
         name: eventArtist.artist.name,
@@ -62,7 +62,7 @@ export class SearchService {
       description: event.description,
       artists: artists,
       genres: genres,
-      type: event.type,
+      type: event.type.name,
       place: {
         name: event.place.name,
         address: event.place.address,
@@ -107,6 +107,7 @@ export class SearchService {
     try {
       const events = await this.prisma.event.findMany({
         include: {
+          type: true,
           eventArtists: {
             include: {
               artist: true,
@@ -138,7 +139,7 @@ export class SearchService {
           name: event.name,
           description: event.description,
           date: event.date,
-          type: event.type,
+          type: event.type.name,
           artists,
           genres,
           place: {

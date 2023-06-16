@@ -1,6 +1,6 @@
 import { EnumEventType, Prisma } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 
 export class UpdateEventDto implements Prisma.EventUpdateInput {
@@ -24,11 +24,13 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
   @IsOptional()
   place?: Prisma.PlaceCreateNestedOneWithoutEventsInput;
 
-  @ApiProperty({ enum: EnumEventType })
-  @IsOptional()
-  @IsEnum(EnumEventType)
-  @IsOptional()
-  type?: EnumEventType;
+  @ApiProperty({default: {
+    connect: {
+      id: 1
+    }
+  }})
+  @IsNotEmpty()
+  type: Prisma.TypeCreateNestedOneWithoutGenresInput;
 
   @ApiProperty({default: {
     connect: {

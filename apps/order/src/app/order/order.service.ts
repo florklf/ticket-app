@@ -22,14 +22,16 @@ export class OrderService {
         cursor?: Prisma.OrderWhereUniqueInput;
         where?: Prisma.OrderWhereInput;
         orderBy?: Prisma.OrderOrderByWithRelationInput;
+        include?: Prisma.OrderInclude;
     }): Promise<Order[]> {
-        const { skip, take, cursor, where, orderBy } = params;
+        const { skip, take, cursor, where, orderBy, include } = params;
         return this.prisma.order.findMany({
             skip,
             take,
             cursor,
             where,
             orderBy,
+            include,
         });
     }
 

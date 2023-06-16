@@ -9,7 +9,6 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Logger.log('Auth Guard');
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
@@ -25,7 +24,7 @@ export class AuthGuard implements CanActivate {
       );
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
-      request['jwtPayload'] = payload;
+      request.jwtPayload = payload;
     } catch(error) {
       throw new UnauthorizedException();
     }

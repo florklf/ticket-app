@@ -9,9 +9,28 @@ import { VerifyOrderDto } from '@ticket-app/common';
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
+  @MessagePattern({ cmd: 'findUserOrders' })
+  async getUserOrders(id: number) {
+    return await this.orderService.orders({ where: { user_id: id } });
+  }
+
   @MessagePattern({ cmd: 'findOrders' })
   async getOrders(id: number) {
-    return await this.orderService.orders({ where: { user_id: id } });
+    return await this.orderService.orders({
+      include: {
+        payment: true,
+        user: true,
+        orderItems: {
+          include: {
+            seatType: {
+              include: {
+                seatType: true,
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   @MessagePattern({ cmd: 'findOrder' })

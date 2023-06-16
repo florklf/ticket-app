@@ -13,9 +13,13 @@ export class CreateEventDto implements Prisma.EventCreateInput {
   @IsString()
   description: string;
 
-  @ApiProperty({ enum: EnumEventType })
-  @IsEnum(EnumEventType)
-  type: EnumEventType;
+  @ApiProperty({default: {
+    connect: {
+      id: 1
+    }
+  }})
+  @IsNotEmpty()
+  type: Prisma.TypeCreateNestedOneWithoutGenresInput;
 
   @Transform( ({ value }) => value && new Date(value))
   @Type(() => Date)
@@ -41,7 +45,7 @@ export class CreateEventDto implements Prisma.EventCreateInput {
       id: 1
     }
   }})
-  eventGenres?: Prisma.EventGenreCreateNestedManyWithoutEventInput;
+  eventGenres: Prisma.EventGenreCreateNestedManyWithoutEventInput;
 
   @ApiProperty({default: {
     connect: {

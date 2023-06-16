@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query, ParseIntPipe } from '@nestjs/common';
-import { Genre } from '@ticket-app/database';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { EnumRole, Genre } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateGenreDto, UpdateGenreDto } from '@ticket-app/common';
+import { CreateGenreDto, FindGenresDto, UpdateGenreDto } from '@ticket-app/common';
+import { Role } from '../common/decorators/roles.decorator';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 @Controller('genres')
 @ApiTags('genres')
@@ -23,8 +26,10 @@ export class GenreController {
   }
 
   @Get()
-  async findAll(): Promise<Genre[]> {
-    return await lastValueFrom(await this.client.send({ cmd: 'findGenres' }, {})
+  async findAll(@Query(ValidationPipe) query: FindGenresDto): Promise<Genre[]> {
+    return await lastValueFrom(await this.client.send({ cmd: 'findGenres' }, {
+      type: query.type ?? undefined,
+    })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
