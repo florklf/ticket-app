@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Mapping } from './mapping';
 import { SearchTotalHits } from '@elastic/elasticsearch/lib/api/types';
@@ -29,6 +29,7 @@ export class SearchService {
       const index = process.env.ELASTIC_EVENT_INDEX;
       const exists = await this.elasticsearchService.indices.exists({ index });
       if (!exists) {
+        Logger.log(`Creating index ${index}...`);
         await this.elasticsearchService.indices.create({
           index,
           body: {
@@ -105,6 +106,7 @@ export class SearchService {
     const { count } = await this.elasticsearchService.count({ index });
     if (count > 0) return;
     try {
+      Logger.log('Indexing all events...');
       const events = await this.prisma.event.findMany({
         include: {
           type: true,

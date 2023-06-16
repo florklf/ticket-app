@@ -14,6 +14,7 @@ export class AuthController {
     try {
       return await lastValueFrom(await this.client.send({ cmd: 'login' }, loginDto));
     } catch (e) {
+      Logger.error(e);
       return false;
     }
   }

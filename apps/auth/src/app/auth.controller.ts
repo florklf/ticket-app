@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { MessagePattern, RpcException } from '@nestjs/microservices';
 
@@ -11,6 +11,7 @@ export class AuthController {
     try {
       return await this.authService.login(await this.authService.validateUser(user.email, user.password));
     } catch(e) {
+      Logger.error(e);
       return false;
     }
   }
