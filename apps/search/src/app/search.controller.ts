@@ -1,8 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 
 import { SearchService } from './search.service';
 import { ApiTags } from '@nestjs/swagger';
 import { MessagePattern } from '@nestjs/microservices';
+import { Event } from '@prisma/client';
 
 @ApiTags('search')
 @Controller()
@@ -10,7 +11,7 @@ export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
   @MessagePattern({ cmd: 'indexDocument' })
-  async indexDocument(request: any) {
+  async indexDocument(request: { event: Event, type: string }) {
     const { event, type } = request;
     return await this.searchService.indexDocument(event, type);
   }

@@ -12,7 +12,7 @@ import { ClientsModule } from '@nestjs/microservices';
       {
         name: 'SEARCH_CLIENT',
         options: {
-          host: process.env.HOST,
+          host: process.env.SEARCH_TCP_HOST,
           port: process.env.SEARCH_TCP_PORT,
         },
       },

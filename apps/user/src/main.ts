@@ -9,7 +9,7 @@ async function bootstrap() {
     UserModule,
     {
       options: {
-        host: process.env.HOST,
+        host: process.env.USER_TCP_HOST,
         port: process.env.USER_TCP_PORT
       }
     },

@@ -9,7 +9,7 @@ async function bootstrap() {
     AppModule,
     {
       options: {
-        host: process.env.HOST,
+        host: process.env.ORDER_TCP_HOST,
         port: process.env.ORDER_TCP_PORT,
       },
     },

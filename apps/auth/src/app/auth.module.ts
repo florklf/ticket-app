@@ -8,7 +8,7 @@ import { AuthController } from "./auth.controller";
   imports: [ClientsModule.register([{
     name: 'USER_CLIENT',
     options: {
-      host: process.env.HOST,
+      host: process.env.USER_TCP_HOST,
       port: process.env.USER_TCP_PORT,
     }
   }]), JwtModule.register({

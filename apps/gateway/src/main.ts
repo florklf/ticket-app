@@ -9,14 +9,16 @@ async function bootstrap() {
   app.enableCors();
   const port = process.env.PORT || 3000;
 
-  const config = new DocumentBuilder()
-    .setTitle('Ticket App API')
-    .setDescription('The ticket app API description')
-    .addBearerAuth()
-    .setVersion('1.0')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('Ticket App API')
+      .setDescription('The ticket app API description')
+      .addBearerAuth()
+      .setVersion('1.0')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+  }
 
   app.useGlobalFilters(new RcpExceptionFilter());
 

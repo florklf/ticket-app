@@ -9,7 +9,7 @@ async function bootstrap() {
     SearchModule,
     {
       options: {
-        host: process.env.HOST,
+        host: process.env.SEARCH_TCP_HOST,
         port: process.env.SEARCH_TCP_PORT,
       },
     },

@@ -1,24 +1,30 @@
-# builder stage named "deps"
-FROM docker.io/node:lts-alpine as deps
+FROM node:18-alpine AS base
 
-COPY dist/apps/auth/package*.json ./
+FROM base AS installer
+RUN apk add --no-cache libc6-compat g++ make py3-pip
+RUN apk update
+WORKDIR /app
+RUN npm install --global nx@16.0.1
 
-# install extracted deps
-RUN npm install --only=production
+COPY . .
 
-# install additional deps
-RUN npm install reflect-metadata tslib rxjs sqlite3 mysql2 pg
+RUN npm ci
 
-# runner stage
-FROM docker.io/node:lts-alpine as runner
+RUN nx run auth:lint:production && nx run auth:build:production
 
-# pull in packages from builder stage
-COPY --from=deps /usr/src/app/node_modules ./node_modules
-COPY --from=deps /usr/src/app/package.json ./package.json
+RUN npm prune --omit=dev
 
-# copy local, compiled app
-COPY dist/apps/auth .
-RUN chown -R node:node .
-USER node
+FROM base AS runner
+WORKDIR /app
 
-CMD ["dumb-init", "node", "main.js"]
+# Don't run production as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nestjs
+USER nestjs
+
+# Automatically leverage output traces to reduce image size
+COPY --from=installer --chown=nestjs:nodejs /app/package*.json .
+COPY --from=installer --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=installer --chown=nestjs:nodejs /app/dist ./dist
+
+CMD node dist/apps/auth/main.js
