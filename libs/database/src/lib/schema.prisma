@@ -80,7 +80,7 @@ model Genre {
 
 model Type {
   id     Int           @id @default(autoincrement())
-  name   EnumEventType
+  name   EnumEventType @unique
   genres Genre[]
   Event  Event[]
 }

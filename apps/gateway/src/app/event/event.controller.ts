@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Query, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, Logger } from '@nestjs/common';
 import { Event, EventSeatType } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
@@ -21,17 +21,17 @@ export class EventController {
 
   @Get('count')
   async countEvents(@Query(new ValidationPipe({transform:true})) query: FindEventsDto): Promise<Event[]> {
-    return await lastValueFrom(await this.client.send({ cmd: 'countEvents' }, {
-      type: {
-        name: query.type ?? undefined,
-      },
-      eventGenres: {
-        some: {
-          genre: {
-            name: query.genre ?? undefined,
-          },
+    const type = query.type ? { name: query.type } : undefined;
+    const eventGenres = query.genre ? {
+      some: {
+        genre: {
+          name: query.genre ?? undefined,
         },
       },
+    } : undefined;
+    return await lastValueFrom(await this.client.send({ cmd: 'countEvents' }, {
+      type,
+      eventGenres
     })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
@@ -45,20 +45,20 @@ export class EventController {
   @Get()
   async findAll(
     @Query(new ValidationPipe({transform:true})) query: FindEventsDto): Promise<Event[]> {
+      const type = query.type ? { name: query.type } : undefined;
+      const eventGenres = query.genre ? {
+        some: {
+          genre: {
+            name: query.genre ?? undefined,
+          },
+        },
+      } : undefined;
     return await lastValueFrom(await this.client.send({ cmd: 'findEvents' }, {
       take: query.limit ?? undefined,
       skip: (query.page && query.limit) ? query.page * query.limit : undefined,
       where: {
-        type: {
-          name: query.type ?? undefined,
-        },
-        eventGenres:  {
-          some: {
-            genre: {
-              name: query.genre ?? undefined,
-            },
-          },
-        },
+        type,
+        eventGenres
       },
     })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -130,7 +130,7 @@ export class EventController {
   async uploadFile(@UploadedFile(
     new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 100000 }),
+        new MaxFileSizeValidator({ maxSize: 1000000 }),
         new FileTypeValidator({ fileType: /(jpg|jpeg|png|gif)$/ }),
       ]
     })
@@ -141,7 +141,6 @@ export class EventController {
       method: 'POST',
       body: formData
       }).then(res => res.json());
-
     return await lastValueFrom(
       await this.client.send(
         { cmd: 'updateEvent' },

@@ -50,13 +50,15 @@ export class OrderController {
                       eventArtists: true,
                       eventGenres: true,
                       place: true,
+                      type: true,
                     }
                   },
                   seatType: true,
                 }
               }
             }
-          }
+          },
+          user: true,
         } : undefined,
       });
     } catch (error) {
