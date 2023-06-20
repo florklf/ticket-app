@@ -29,6 +29,7 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
       id: 1
     }
   }})
+  @IsOptional()
   @IsNotEmpty()
   type: Prisma.TypeCreateNestedOneWithoutGenresInput;
 
@@ -45,7 +46,6 @@ export class UpdateEventDto implements Prisma.EventUpdateInput {
       id: 1
     }
   }})
-
   @IsOptional()
   eventArtists?: Prisma.EventArtistCreateNestedManyWithoutEventInput;
 

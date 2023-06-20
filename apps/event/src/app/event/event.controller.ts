@@ -88,7 +88,6 @@ export class EventController {
           }
         }
       },
-      take,
       skip,
       where
     });
