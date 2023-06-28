@@ -37,7 +37,7 @@ export class OrderController {
   async getOrder({ id, user_id, include }: { id: number, user_id: number, include: boolean }) {
     try {
       return await this.orderService.order({
-        where: { id, user_id },
+        where: { id },
         include: include ? {
           payment: true,
           orderItems: {

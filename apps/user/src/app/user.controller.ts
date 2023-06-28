@@ -30,8 +30,9 @@ export class UserController {
   }
 
   @MessagePattern({ cmd: 'updateUser' })
-  async updateUser(data: { where: Prisma.UserWhereUniqueInput; data: Prisma.UserUpdateInput }): Promise<User> {
-    return await this.userService.updateUser(data);
+  async updateUser(payload: { where: Prisma.UserWhereUniqueInput; data: Prisma.UserUpdateInput }): Promise<User> {
+    payload.data.password = await this.userService.hashPassword(payload.data.password as string);
+    return await this.userService.updateUser(payload);
   }
 
   @MessagePattern({ cmd: 'removeUser' })
