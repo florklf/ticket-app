@@ -1,14 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, UseGuards, Logger, Query, ValidationPipe } from '@nestjs/common';
 import { Prisma, User } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FindUsersDto } from '@ticket-app/common';
 
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
   constructor(@Inject('USER_CLIENT') private readonly client: ClientProxy) {}
+
+  @Get('count')
+  async countEvents(@Query(new ValidationPipe({transform:true})) query: FindUsersDto): Promise<Event[]> {
+    return await lastValueFrom(await this.client.send({ cmd: 'countUsers' }, { role: query.role ?? undefined })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Omit<User, 'password'>> {
@@ -29,6 +36,14 @@ export class UsersController {
     });
     return result;
   }
+
+  @Get(':id/orders')
+  async findUserOrders(@Param('id') id: string): Promise<User> {
+    Logger.log(id);
+    return await lastValueFrom(await this.client.send({ cmd: 'findUserOrders' }, { id: +id })
+    .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
 
   @Post()
   async create(@Body() createUserDto: Prisma.UserCreateInput): Promise<Omit<User, 'password'>> {

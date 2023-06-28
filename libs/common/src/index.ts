@@ -13,5 +13,8 @@ export * from './lib/dto/event/find-events.dto';
 export * from './lib/dto/event/find-genres.dto';
 export * from './lib/dto/orders/find-one-order.dto';
 export * from './lib/dto/orders/verify-order.dto';
+export * from './lib/dto/orders/find-orders.dto';
 export * from './lib/dto/event/create-event-seat-type.dto';
 export * from './lib/dto/event/update-event-seat-type.dto';
+export * from './lib/dto/users/find-users.dto';
+export * from './lib/interfaces/EnumTimeScope';

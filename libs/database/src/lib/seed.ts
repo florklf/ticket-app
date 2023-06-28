@@ -50,13 +50,26 @@ function getRandomProperty(obj: any) {
   return keys[Math.floor(Math.random() * keys.length)];
 }
 
-const fakerUser = (): any => {
+async function getRandomRow(model: string, where: any = null) {
+  //@ts-ignore
+  const count = await prisma[model].count()
+  const randomNumber = Math.floor(Math.random() * count)
+  //@ts-ignore
+  const randomUser = await prisma[model].findMany({
+    skip: randomNumber,
+    take: 1,
+  })
+  return randomUser[0]
+}
+
+const fakerUser = (scopeRole: EnumRole | null = null): any => {
   const firstname = faker.person.firstName();
   const lastname = faker.person.lastName();
   const email = faker.internet.email({ firstName: firstname, lastName: lastname });
-  const password = bcrypt.hashSync('password', 10);
-  const role = getRandomProperty(EnumRole) as EnumRole;
-  return { firstname, lastname, email, password, role };
+  const password = bcrypt.hashSync('admin', 10);
+  const role = scopeRole ?? getRandomProperty(EnumRole) as EnumRole;
+  const created_at = faker.date.recent({days: 45});
+  return { firstname, lastname, email, password, role, created_at };
 };
 
 const fakerPlace = (): any => {
@@ -100,13 +113,19 @@ const fakerSeatType = (placeParam: Place, seatTypeName: string): any => {
 }
 
 async function main() {
-  const fakerRounds = 10;
   dotenv.config();
   console.log('Seeding...');
 
+  /// --------- Admin ---------------
+  const firstname = 'admin'
+  const lastname = 'doe'
+  const email = 'admin@test.com'
+  const password = bcrypt.hashSync('password', 10);
+  const role = EnumRole.ADMIN
+  await prisma.user.create({ data: { firstname, lastname, email, password, role } });
   /// --------- Users ---------------
-  for (let i = 0; i < fakerRounds; i++) {
-    await prisma.user.create({ data: fakerUser() });
+  for (let i = 0; i < 20; i++) {
+    await prisma.user.create({ data: fakerUser('USER') });
   }
 
   /// --------- Types ---------------
@@ -208,6 +227,62 @@ async function main() {
         }
       });
     }
+
+    /// --------- Orders ---------------
+    const user = await getRandomRow('user', { role: 'USER' });
+    const created_at = faker.date.recent({days: 45});
+    const order = await prisma.order.create({
+      data: {
+        user_id: user.id,
+        snipcart_id: faker.string.uuid(),
+        billing_address: faker.location.streetAddress(),
+        billing_city: faker.location.city(),
+        billing_zip: faker.location.zipCode(),
+        billing_country: faker.location.countryCode(),
+        shipping_address: faker.location.streetAddress(),
+        shipping_city: faker.location.city(),
+        shipping_zip: faker.location.zipCode(),
+        shipping_country: faker.location.country(),
+        created_at: created_at
+      },
+    });
+    /// --------- OrderItems ---------------
+    const orderItems = [];
+    for (let j = 0; j < faker.number.int({ min: 1, max: 3 }); j++) {
+    const eventSeatType = await getRandomRow('EventSeatType');
+      const orderItem = await prisma.orderItem.create({
+        data: {
+          order_id: order.id,
+          seat_type_id: eventSeatType.id,
+          quantity: faker.number.int({ min: 1, max: 3 }),
+        },
+        select: {
+          id: true,
+          quantity: true,
+          seatType: true,
+        }
+      });
+      const qrCode = await prisma.qRCode.create({
+        data: {
+          order_item_id: orderItem.id,
+          qr_code: faker.string.alphanumeric(20),
+          qr_code_decoded: faker.string.alphanumeric(20),
+        },
+      });
+      orderItems.push(orderItem);
+    }
+    /// --------- Payments ---------------
+    const payment = await prisma.payment.create({
+      data: {
+        order_id: order.id,
+        amount: orderItems.reduce((total, curr) => total + curr.quantity * curr.seatType.price, 0),
+        status: 'Processed',
+        payment_method: 'CreditCard',
+        card_type: 'Visa',
+        card_last4: +faker.string.numeric(4),
+        created_at: created_at
+      },
+    });
   }
 };
 
