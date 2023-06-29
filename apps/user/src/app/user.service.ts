@@ -6,11 +6,14 @@ import { hash } from 'bcrypt';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async findOne(
-    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
-  ): Promise<User | null> {
+  async findOne(params: {
+    where: Prisma.UserWhereUniqueInput;
+    include?: Prisma.UserInclude;
+  }): Promise<User | null> {
+    const { where, include } = params;
     return this.prisma.user.findUniqueOrThrow({
-      where: userWhereUniqueInput,
+      where,
+      include,
     });
   }
 
@@ -56,5 +59,11 @@ export class UserService {
 
   async hashPassword(password: string): Promise<string> {
     return hash(password, 10);
+  }
+
+  async countUsers(where: Prisma.UserWhereInput): Promise<number> {
+    return this.prisma.user.count({
+      where
+    });
   }
 }

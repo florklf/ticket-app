@@ -4,7 +4,7 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../common/guards/auth.guard';
-import { VerifyOrderDto } from '@ticket-app/common';
+import { FindOrdersDto, VerifyOrderDto } from '@ticket-app/common';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Role } from '../common/decorators/roles.decorator';
 
@@ -29,6 +29,14 @@ export class OrderController {
         .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
     }
     return await lastValueFrom(await this.client.send({ cmd: 'findUserOrders' }, req.jwtPayload.user.id)
+      .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
+  }
+
+  @Get('best-selling')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  async bestSelling(@Query(new ValidationPipe({transform:true})) query: FindOrdersDto): Promise<Order[]> {
+    return await lastValueFrom(await this.client.send({ cmd: 'getBestSellingEvents' }, { time: query.time, limit: query.limit})
       .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
   }
 
