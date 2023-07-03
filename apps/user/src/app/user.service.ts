@@ -66,4 +66,21 @@ export class UserService {
       where
     });
   }
+
+  async currentUser(id: number): Promise<Omit<User, 'password'>> {
+    return this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstname: true,
+        lastname: true,
+        role: true,
+        created_at: true,
+        Order: true,
+      },
+    });
+  }
 }
