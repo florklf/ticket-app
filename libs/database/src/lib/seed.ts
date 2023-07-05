@@ -76,9 +76,11 @@ const fakerPlace = (): any => {
   const name = faker.location.street()
   const description = faker.lorem.paragraph();
   const address = faker.location.streetAddress();
+  const lat = faker.location.latitude();
+  const lng = faker.location.longitude();
   const city = faker.location.city();
   const zip = faker.location.zipCode();
-  return { name, description, address, city, zip };
+  return { name, description, address, city, zip, lat, lng };
 }
 
 const fakerEvent = async (location_id: number, type_id: number): Promise<Prisma.EventCreateInput> => {

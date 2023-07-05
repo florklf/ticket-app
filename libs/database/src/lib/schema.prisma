@@ -38,6 +38,8 @@ model Place {
   name        String
   description String?
   address     String
+  lat         Float
+  lng         Float
   city        String
   zip         String
   events      Event[]
