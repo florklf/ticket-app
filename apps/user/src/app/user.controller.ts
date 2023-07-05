@@ -66,4 +66,9 @@ export class UserController {
     Logger.log(data);
     return await this.userService.countUsers(data);
   }
+
+  @MessagePattern({ cmd: 'currentUser' })
+  async currentUser(data: { id: number }): Promise<Omit<User, 'password'>> {
+    return await this.userService.currentUser(data.id);
+  }
 }
