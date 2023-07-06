@@ -63,9 +63,6 @@ export class UsersController {
 
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Role(EnumRole.ADMIN)
-  @ApiBearerAuth()
   async create(@Body() createUserDto: Prisma.UserCreateInput): Promise<Omit<User, 'password'>> {
       const user = await lastValueFrom(await this.client.send({ cmd: 'createUser' }, createUserDto)
       .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
