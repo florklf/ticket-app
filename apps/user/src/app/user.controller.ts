@@ -16,11 +16,7 @@ export class UserController {
     return await this.userService.findOne({
       where: data,
       include: {
-        Order: {
-          include: {
-            user: true,
-          },
-        }
+        Order: true
       }
     });
   }

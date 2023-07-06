@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Headers } from '@nestjs/common';
-import { Payment } from '@ticket-app/database';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, ValidationPipe, Headers, UseGuards } from '@nestjs/common';
+import { EnumRole, Payment } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreatePaymentDto, UpdatePaymentDto } from '@ticket-app/common';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Role } from '../common/decorators/roles.decorator';
 
 @Controller('payments')
 @ApiTags('payments')
@@ -17,6 +20,9 @@ export class PaymentController {
   }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async findAll(): Promise<Payment[]> {
     return await lastValueFrom(await this.client.send({ cmd: 'findPayments' }, {})
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -24,6 +30,9 @@ export class PaymentController {
 
   @Post()
   @ApiBody({ type: CreatePaymentDto })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async create(@Body(new ValidationPipe) createPaymentDto: CreatePaymentDto): Promise<Payment> {
     return await lastValueFrom(await this.client.send({ cmd: 'createPayment' }, createPaymentDto)
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -31,6 +40,9 @@ export class PaymentController {
 
   @Patch(':id')
   @ApiBody({ type: UpdatePaymentDto })
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async update(@Param('id') id: string, @Body(new ValidationPipe) updatePaymentDto: UpdatePaymentDto): Promise<Payment> {
     return await lastValueFrom(
       await this.client.send(
@@ -44,6 +56,9 @@ export class PaymentController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async remove(@Param('id') id: string): Promise<Payment> {
     return await lastValueFrom(await this.client.send({ cmd: 'removePayment' }, { id: +id })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
