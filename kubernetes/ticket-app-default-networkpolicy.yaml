@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: null
+  name: ticket-app-default
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              network/ticket-app-default: "true"
+  podSelector:
+    matchLabels:
+      network/ticket-app-default: "true"

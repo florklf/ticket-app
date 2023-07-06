@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: gateway
+  name: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: gateway
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: gateway
+    spec:
+      containers:
+        - image: foopy7774/gateway-ticket:latest
+          name: gateway
+          ports:
+            - containerPort: 3000
+          resources: {}
+          env:
+            - name: PORT
+              value: "3000"
+            - name: AUTH_TCP_HOST
+              value: 0.0.0.0
+            - name: AUTH_TCP_PORT
+              value: "4012"
+            - name: USER_TCP_HOST
+              value: 0.0.0.0
+            - name: USER_TCP_PORT
+              value: "4013"
+            - name: EVENT_TCP_HOST
+              value: 0.0.0.0
+            - name: EVENT_TCP_PORT
+              value: "4014"
+            - name: ORDER_TCP_HOST
+              value: 0.0.0.0
+            - name: ORDER_TCP_PORT
+              value: "4015"
+            - name: SEARCH_TCP_HOST
+              value: 0.0.0.0
+            - name: SEARCH_TCP_PORT
+              value: "4016"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: JWT_SECRET
+            - name: IMGBB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: IMGBB_API_KEY
+      restartPolicy: Always
+status: {}

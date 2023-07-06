@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: search
+  name: search
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: search
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: search
+    spec:
+      restartPolicy: Always
+      containers:
+        - image: foopy7774/search-ticket-microservice:latest
+          name: search
+          ports:
+            - containerPort: 4016
+          resources: {}
+          env:
+            - name: SEARCH_TCP_HOST
+              value: 0.0.0.0
+            - name: SEARCH_TCP_PORT
+              value: "4016"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+            - name: ELASTICSEARCH_NODE
+              value: "http://elasticsearch-ticket:9200"
+            - name: ELASTIC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: ELASTIC_USERNAME
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: ELASTIC_PASSWORD
+            - name: ELASTIC_EVENT_INDEX
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: ELASTIC_EVENT_INDEX
+status: {}

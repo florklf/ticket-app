@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: auth
+  name: auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: auth
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: auth
+    spec:
+      containers:
+        - image: foopy7774/auth-ticket-microservice:latest
+          name: auth
+          ports:
+            - containerPort: 4012
+          resources: {}
+          env:
+            - name: AUTH_TCP_HOST
+              value: 0.0.0.0
+            - name: AUTH_TCP_PORT
+              value: "4012"
+            - name: USER_TCP_HOST
+              value: 0.0.0.0
+            - name: USER_TCP_PORT
+              value: "4013"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: JWT_SECRET
+      restartPolicy: Always
+status: {}

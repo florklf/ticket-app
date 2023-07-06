@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: event
+  name: event
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: event
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: event
+    spec:
+      containers:
+        - image: foopy7774/event-ticket-microservice:latest
+          name: event
+          ports:
+            - containerPort: 4014
+          resources: {}
+          env:
+            - name: EVENT_TCP_HOST
+              value: 0.0.0.0
+            - name: EVENT_TCP_PORT
+              value: "4014"
+            - name: SEARCH_TCP_HOST
+              value: 0.0.0.0
+            - name: SEARCH_TCP_PORT
+              value: "4016"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+            - name: IMGBB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: IMGBB_API_KEY
+            - name: EXPOSED_HOST
+              value: "https://tickets.rklf.fr/api"
+      restartPolicy: Always
+status: {}

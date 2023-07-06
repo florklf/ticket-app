@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: es01
+  name: es01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: es01
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: es01
+    spec:
+      containers:
+        - env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: ELASTIC_PASSWORD
+            - name: ES_JAVA_OPTS
+              value: -Xms512m -Xmx512m
+            - name: bootstrap.memory_lock
+              value: "true"
+            - name: discovery.type
+              value: single-node
+            - name: node.name
+              value: es01
+            - name: xpack.security.enabled
+              value: "true"
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.8.1
+          name: es01
+          ports:
+            - containerPort: 9200
+          resources:
+            limits:
+              memory: "1073741824"
+          volumeMounts:
+            - mountPath: /usr/share/elasticsearch/data
+              name: elastic-data
+      restartPolicy: Always
+      volumes:
+        - name: elastic-data
+          persistentVolumeClaim:
+            claimName: elastic-data
+status: {}
