@@ -13,13 +13,6 @@ import { Role } from '../common/decorators/roles.decorator';
 export class OrderController {
   constructor(@Inject('ORDER_CLIENT') private readonly client: ClientProxy) { }
 
-  /**
-   * We consider that every request to the orders service will be made by an authenticated user.
-   * This is why we use the AuthGuard to check if the user is authenticated.
-   * If the user is authenticated, the AuthGuard will add the user object to the request object.
-   * We can then use the user object to get the user id and send it to the orders service.
-  **/
-
   @Get()
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -33,7 +26,8 @@ export class OrderController {
   }
 
   @Get('best-selling')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
   @ApiBearerAuth()
   async bestSelling(@Query(new ValidationPipe({transform:true})) query: FindOrdersDto): Promise<Order[]> {
     return await lastValueFrom(await this.client.send({ cmd: 'getBestSellingEvents' }, { time: query.time, limit: query.limit})
@@ -41,7 +35,8 @@ export class OrderController {
   }
 
   @Get(':id')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
   @ApiBearerAuth()
   async findOne(@Param('id') id: string, @Query('include') include: boolean, @Request() req: Request & { jwtPayload: any }): Promise<Order> {
     return await lastValueFrom(await this.client.send({ cmd: 'findOrder' }, { id: +id, user_id: req.jwtPayload?.user?.id, include })

@@ -34,7 +34,7 @@ export class OrderController {
 
   @MessagePattern({ cmd: 'findOrders' })
   async getOrders(id: number) {
-    return await this.orderService.orders({
+    const orders = await this.orderService.orders({
       include: {
         payment: true,
         user: true,
@@ -49,6 +49,10 @@ export class OrderController {
           }
         }
       }
+    });
+    return orders.map((order: any) => {
+      const { user_id, user: { password, ...rest }, ...orderRest } = order;
+      return { ...orderRest, user: rest };
     });
   }
 

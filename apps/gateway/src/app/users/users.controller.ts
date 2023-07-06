@@ -1,10 +1,12 @@
 import { Controller, Request, Get, Post, Body, Patch, Param, Delete, Inject, UseGuards, Logger, Query, ValidationPipe } from '@nestjs/common';
-import { Prisma, User } from '@ticket-app/database';
+import { EnumRole, Prisma, User } from '@ticket-app/database';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { catchError, lastValueFrom, throwError } from 'rxjs';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FindUsersDto } from '@ticket-app/common';
+import { Role } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 
 @Controller('users')
 @ApiTags('users')
@@ -26,6 +28,9 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async findOne(@Param('id') id: string): Promise<Omit<User, 'password'>> {
     const user = await lastValueFrom(await this.client.send({ cmd: 'findUser' }, { id: +id })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -34,7 +39,8 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
   @ApiBearerAuth()
   async findAll(): Promise<Omit<User[], 'password'>> {
     const users = await lastValueFrom(await this.client.send({ cmd: 'findUsers' }, {}));
@@ -46,6 +52,9 @@ export class UsersController {
   }
 
   @Get(':id/orders')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async findUserOrders(@Param('id') id: string): Promise<User> {
     Logger.log(id);
     return await lastValueFrom(await this.client.send({ cmd: 'findUserOrders' }, { id: +id })
@@ -54,6 +63,9 @@ export class UsersController {
 
 
   @Post()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async create(@Body() createUserDto: Prisma.UserCreateInput): Promise<Omit<User, 'password'>> {
       const user = await lastValueFrom(await this.client.send({ cmd: 'createUser' }, createUserDto)
       .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
@@ -62,6 +74,9 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async update(@Param('id') id: string, @Body() updateUserDto: Prisma.UserUpdateInput): Promise<Omit<User, 'password'>> {
     Logger.log(id)
     const user = await lastValueFrom(
@@ -78,6 +93,9 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Role(EnumRole.ADMIN)
+  @ApiBearerAuth()
   async remove(@Param('id') id: string): Promise<Omit<User, 'password'>> {
     const user = await lastValueFrom(await this.client.send({ cmd: 'removeUser' }, { id: +id })
     .pipe(catchError(error => throwError(() => new RpcException(error.response)))));
