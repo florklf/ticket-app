@@ -47,20 +47,47 @@ jobs:
           tags: "${{ matrix.image }}:latest"
           labels: ${{ steps.meta.outputs.labels }}
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+  deploy_to_kubernetes:
+    name: 🚀 Deploy to Kubernetes Cluster
+    needs: push_to_registry
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - deployment: ./kubernetes/gateway-deployment.yaml
+            service: ./kubernetes/gateway-service.yaml
+          - deployment: ./kubernetes/auth-deployment.yaml
+            service: ./kubernetes/auth-service.yaml
+          - deployment: ./kubernetes/user-deployment.yaml
+            service: ./kubernetes/user-service.yaml
+          - deployment: ./kubernetes/event-deployment.yaml
+            service: ./kubernetes/event-service.yaml
+          - deployment: ./kubernetes/order-deployment.yaml
+            service: ./kubernetes/order-service.yaml
+          - deployment: ./kubernetes/search-deployment.yaml
+            service: ./kubernetes/search-service.yaml
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v1
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          version: 'v1.19.0'
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-
-      - id: 'get-credentials'
-        uses: 'google-github-actions/get-gke-credentials@v1'
+      - uses: azure/login@v1
         with:
-          cluster_name: 'autopilot-cluster'
-          location: 'europe-west1'
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to GKE
+      - name: Configure Kubernetes context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: 'ticketapp'
+          cluster-name: 'ticketapp-cluster'
+        id: login
+
+      - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f ./kubernetes/.
+          kubectl apply -f ${{ matrix.deployment }}
+          kubectl apply -f ${{ matrix.service }}
