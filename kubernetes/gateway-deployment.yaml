@@ -28,23 +28,23 @@ spec:
             - name: PORT
               value: "3000"
             - name: AUTH_TCP_HOST
-              value: 0.0.0.0
+              value: auth
             - name: AUTH_TCP_PORT
               value: "4012"
             - name: USER_TCP_HOST
-              value: 0.0.0.0
+              value: user
             - name: USER_TCP_PORT
               value: "4013"
             - name: EVENT_TCP_HOST
-              value: 0.0.0.0
+              value: event
             - name: EVENT_TCP_PORT
               value: "4014"
             - name: ORDER_TCP_HOST
-              value: 0.0.0.0
+              value: order
             - name: ORDER_TCP_PORT
               value: "4015"
             - name: SEARCH_TCP_HOST
-              value: 0.0.0.0
+              value: search
             - name: SEARCH_TCP_PORT
               value: "4016"
             - name: DATABASE_URL

@@ -19,6 +19,17 @@ spec:
         service: search
     spec:
       restartPolicy: Always
+      initContainers:
+        - name: wait-for-elasticsearch
+          image: appropriate/curl
+          command:
+          - sh
+          - -c
+          - |
+            set -e
+            until curl -s http://es01:9200/ -o /dev/null; do
+              sleep 1
+            done
       containers:
         - image: foopy7774/search-ticket-microservice:latest
           name: search
@@ -36,7 +47,7 @@ spec:
                   name: ticketapp
                   key: DATABASE_URL
             - name: ELASTICSEARCH_NODE
-              value: "http://elasticsearch-ticket:9200"
+              value: "http://es01:9200"
             - name: ELASTIC_USERNAME
               valueFrom:
                 secretKeyRef:
