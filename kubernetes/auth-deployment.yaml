@@ -30,7 +30,7 @@ spec:
             - name: AUTH_TCP_PORT
               value: "4012"
             - name: USER_TCP_HOST
-              value: 0.0.0.0
+              value: user.default.svc.cluster.local
             - name: USER_TCP_PORT
               value: "4013"
             - name: DATABASE_URL
