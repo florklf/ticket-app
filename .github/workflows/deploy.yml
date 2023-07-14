@@ -51,21 +51,6 @@ jobs:
     name: 🚀 Deploy to Kubernetes Cluster
     needs: push_to_registry
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - deployment: ./kubernetes/gateway-deployment.yaml
-            service: ./kubernetes/gateway-service.yaml
-          - deployment: ./kubernetes/auth-deployment.yaml
-            service: ./kubernetes/auth-service.yaml
-          - deployment: ./kubernetes/user-deployment.yaml
-            service: ./kubernetes/user-service.yaml
-          - deployment: ./kubernetes/event-deployment.yaml
-            service: ./kubernetes/event-service.yaml
-          - deployment: ./kubernetes/order-deployment.yaml
-            service: ./kubernetes/order-service.yaml
-          - deployment: ./kubernetes/search-deployment.yaml
-            service: ./kubernetes/search-service.yaml
 
     steps:
       - name: Checkout
@@ -89,5 +74,4 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f ${{ matrix.deployment }}
-          kubectl apply -f ${{ matrix.service }}
+          kubectl apply -f ./kubernetes/.
