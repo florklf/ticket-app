@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-rewrite
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: "tickets.rklf.fr"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/api(/|$)(.*)"
+        backend:
+          service:
+            name: gateway
+            port:
+              number: 3000
+              

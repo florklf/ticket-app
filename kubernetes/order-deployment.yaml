@@ -33,11 +33,11 @@ spec:
                 secretKeyRef:
                   name: ticketapp
                   key: DATABASE_URL
-            - name: SNIPCART_SECRET_KEY
+            - name: SNIPCART_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: ticketapp
-                  key: SNIPCART_SECRET_KEY
+                  key: SNIPCART_API_KEY
           resources: {}
       restartPolicy: Always
 status: {}
