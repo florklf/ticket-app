@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: user
+  name: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: user
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: user
+    spec:
+      restartPolicy: Always
+      containers:
+        - image: foopy7774/user-ticket-microservice:latest
+          name: user
+          ports:
+            - containerPort: 4013
+          resources: {}
+          env:
+            - name: USER_TCP_HOST
+              value: 0.0.0.0
+            - name: USER_TCP_PORT
+              value: "4013"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+status: {}

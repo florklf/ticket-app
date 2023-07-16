@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ master ]
+    branches: [ master, feat/kubernetes ]
 
 name: 🚧 Build, Push to Docker Hub & Deploy to Virtual Machine 🚀
 jobs:
@@ -46,31 +46,32 @@ jobs:
           push: true
           tags: "${{ matrix.image }}:latest"
           labels: ${{ steps.meta.outputs.labels }}
-  deploy:
-      name: 🚀 Deploy to Virtual Machine
-      runs-on: ubuntu-latest
-      needs: push_to_registry
-      steps:
-        - name: Pull image and run container
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.SSH_HOST }}
-            port: ${{ secrets.SSH_PORT }}
-            username: ${{ secrets.SSH_USERNAME }}
-            key: ${{ secrets.SSH_KEY }}
-            script: |
-              docker pull foopy7774/gateway-ticket:latest && docker pull foopy7774/auth-ticket-microservice:latest && docker pull foopy7774/user-ticket-microservice:latest && docker pull foopy7774/event-ticket-microservice:latest && docker pull foopy7774/order-ticket-microservice:latest && docker pull foopy7774/search-ticket-microservice:latest
-              docker stop psql-ticket elasticsearch-ticket gateway-ticket auth-ticket-microservice user-ticket-microservice event-ticket-microservice order-ticket-microservice search-ticket-microservice
-              docker network rm ticket-back
-              docker network create ticket-back
-              docker volume create --name ticket-pgdata
-              docker volume create --name ticket-esdata
-              docker run --rm -d --name psql-ticket --network ticket-back -v ticket-pgdata:/var/lib/postgresql/data -e POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" -e POSTGRES_DB="${{ secrets.POSTGRES_DB }}" postgres:alpine
-              docker run --rm -d --name elasticsearch-ticket --network ticket-back -v ticket-esdata:/usr/share/elasticsearch/data -e "node.name=es01" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -e "discovery.type=single-node" -e "xpack.security.enabled=true" -e ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }} docker.elastic.co/elasticsearch/elasticsearch:8.8.1
-              docker run --rm -d --name user-ticket-microservice --network ticket-back -e USER_TCP_HOST=user-ticket-microservice -e USER_TCP_PORT=4013 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" foopy7774/user-ticket-microservice:latest
-              docker run --rm -d --name auth-ticket-microservice --network ticket-back -e AUTH_TCP_HOST=auth-ticket-microservice -e AUTH_TCP_PORT=4012 -e USER_TCP_HOST=user-ticket-microservice -e USER_TCP_PORT=4013 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e JWT_SECRET="${{ secrets.JWT_SECRET }}" foopy7774/auth-ticket-microservice:latest
-              docker run --rm -d --name event-ticket-microservice --network ticket-back -e EVENT_TCP_HOST=event-ticket-microservice -e EVENT_TCP_PORT=4014 -e SEARCH_TCP_HOST=search-ticket-microservice -e SEARCH_TCP_PORT=4016 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e IMGBB_API_KEY="${{ secrets.IMGBB_API_KEY }}" -e EXPOSED_HOST="${{ secrets.EXPOSED_HOST }}" foopy7774/event-ticket-microservice:latest
-              docker run --rm -d --name order-ticket-microservice --network ticket-back -e ORDER_TCP_HOST=order-ticket-microservice -e ORDER_TCP_PORT=4015 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e SNIPCART_SECRET_KEY="${{ secrets.SNIPCART_SECRET_KEY }}" foopy7774/order-ticket-microservice:latest
-              docker run --rm -d --name search-ticket-microservice --network ticket-back -e SEARCH_TCP_HOST=search-ticket-microservice -e SEARCH_TCP_PORT=4016 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e ELASTICSEARCH_NODE="http://elasticsearch-ticket:9200" -e ELASTIC_USERNAME="${{ secrets.ELASTIC_USERNAME }}" -e ELASTIC_PASSWORD="${{ secrets.ELASTIC_PASSWORD }}" -e ELASTIC_EVENT_INDEX="${{ secrets.ELASTIC_EVENT_INDEX }}" foopy7774/search-ticket-microservice:latest
-              docker run --rm -d --name gateway-ticket --network ticket-back -p ${{ secrets.PORT }}:${{ secrets.PORT }} -e PORT=${{ secrets.PORT }} -e AUTH_TCP_HOST=auth-ticket-microservice -e AUTH_TCP_PORT=4012 -e USER_TCP_HOST=user-ticket-microservice -e USER_TCP_PORT=4013 -e EVENT_TCP_HOST=event-ticket-microservice -e EVENT_TCP_PORT=4014 -e ORDER_TCP_HOST=order-ticket-microservice -e ORDER_TCP_PORT=4015 -e SEARCH_TCP_HOST=search-ticket-microservice -e SEARCH_TCP_PORT=4016 -e DATABASE_URL="${{ secrets.DATABASE_URL }}" -e JWT_SECRET="${{ secrets.JWT_SECRET }}" -e IMGBB_API_KEY="${{ secrets.IMGBB_API_KEY }}" foopy7774/gateway-ticket:latest
-              docker exec --workdir /app gateway-ticket npx prisma migrate deploy --schema='dist/libs/database/src/lib/schema.prisma'
+
+  deploy_to_kubernetes:
+    name: 🚀 Deploy to Kubernetes Cluster
+    needs: push_to_registry
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.19.0'
+
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Kubernetes context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: 'ticketapp'
+          cluster-name: 'ticketapp-cluster'
+        id: login
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ./kubernetes/.

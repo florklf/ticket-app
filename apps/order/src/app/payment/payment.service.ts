@@ -143,7 +143,7 @@ export class PaymentService {
       const verifyToken = await fetch(`https://app.snipcart.com/api/requestvalidation/${snipcartRequestToken}`, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Basic ${Buffer.from(process.env.SNIPCART_SECRET_KEY).toString('base64')}`,
+          Authorization: `Basic ${Buffer.from(process.env.SNIPCART_API_KEY).toString('base64')}`,
         },
       });
       if (!verifyToken.ok) {

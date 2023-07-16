@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    service: auth
+  name: auth
+spec:
+  ports:
+    - name: "4012"
+      port: 4012
+      targetPort: 4012
+  selector:
+    service: auth
+status:
+  loadBalancer: {}

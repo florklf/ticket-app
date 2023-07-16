@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    service: order
+  name: order
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: order
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        network/ticket-app-default: "true"
+        service: order
+    spec:
+      containers:
+        - image: foopy7774/order-ticket-microservice:latest
+          name: order
+          ports:
+            - containerPort: 4015
+          env:
+            - name: ORDER_TCP_HOST
+              value: 0.0.0.0
+            - name: ORDER_TCP_PORT
+              value: "4015"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: DATABASE_URL
+            - name: SNIPCART_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ticketapp
+                  key: SNIPCART_API_KEY
+          resources: {}
+      restartPolicy: Always
+status: {}
